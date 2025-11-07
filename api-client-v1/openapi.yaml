@@ -996,30 +996,6 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/logout:
-    post:
-      tags:
-        - Авторизация по паролю
-      summary: Выход
-      description: Сбрасывает авторизацию
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Авторизация сброшена
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
   /auth/register:
     post:
       tags:
@@ -1081,6 +1057,32 @@ paths:
           $ref: '#/components/responses/PaymentRequiredError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/logout:
+    post:
+      tags:
+        - Выход
+      summary: Выход
+      security:
+        - BearerAuth: [ ]
+      description: Сбрасывает авторизацию
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Авторизация сброшена
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
