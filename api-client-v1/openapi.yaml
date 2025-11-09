@@ -20,11 +20,39 @@ servers:
       domain:
         default: demo.smartofood.ru
 
+x-tagGroups:
+  - name: Общие
+    tags:
+      - Пинг API
+      - Настройки
+      - Обратный звонок
+      - Подсказки адресов
+  - name: Гость
+    tags:
+      - Регистрация
+      - Авторизация
+      - Профиль
+      - Выход
+  - name: Сайт
+    tags:
+      - Места
+      - Страницы
+      - Баннеры
+      - Акции
+      - Продукты
+      - QR-меню
+      - Фиды
+  - name: Заказ
+    tags:
+      - Корзина
+      - Оформление заказа
+      - Информация о заказах
+
 paths:
   /ping:
     get:
       tags:
-        - Общие методы
+        - Пинг API
       summary: Пинг API
       description: Этот эндпоинт возвращает статус сервиса, подтверждая, что API работает
         корректно.
@@ -57,8 +85,8 @@ paths:
   /settings:
     get:
       tags:
-        - Общие методы
-      summary: Настройки сайта
+        - Настройки
+      summary: Настройки
       description: Возвращает базовую конфигурацию сайта
       parameters:
         - $ref: '#/components/parameters/Lang'
@@ -641,7 +669,7 @@ paths:
   /callback:
     post:
       tags:
-        - Общие методы
+        - Обратный звонок
       summary: Обратный звонок
       description: Отправляет оповещение о необходимости обратного звонка
       parameters:
@@ -672,180 +700,55 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/anonymous:
-    post:
+  /suggestions/streets:
+    get:
       tags:
-        - Анонимная авторизация
-      summary: Анонимная авторизация
-      description: Авторизует любого пользователя без ввода номера телефона при включеной
-        настройке SITE_AUTH_ANONYMOUS
+        - Подсказки адресов
+      summary: Поиск улиц
+      description: Возвращает список улиц (только для России)
+      security:
+        - BearerAuth: [ ]
       parameters:
+        - $ref: '#/components/parameters/CityId'
+        - $ref: '#/components/parameters/Query'
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
       responses:
         '200':
-          $ref: '#/components/responses/AuthSuccess'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/refresh:
-    post:
-      tags:
-        - Авторизация по токену
-      summary: Обновление access токена
-      description: Выдаёт новый access-токен по действующему refresh-токену
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - refresh_token
-              properties:
-                refresh_token:
-                  type: string
-                  description: Refresh token
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccess'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/telegram/session:
-    post:
-      tags:
-        - Авторизация Telegram
-      summary: Авторизация по сессии бота
-      description: Авторизует гостя по сессии переданной ботом
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - session_hash
-              properties:
-                session_hash:
-                  type: string
-                  description: MD5-хэш сессии
-                  example: e5440561a26066f4b18101ff563312de
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccess'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/telegram/login:
-    post:
-      tags:
-        - Авторизация Telegram
-      summary: Авторизация по данным Telegram Mini App
-      description: Авторизует гостя по данным переданным из Telegram Mini App
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - init_data
-              properties:
-                init_data:
-                  $ref: '#/components/schemas/TgInitData'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccess'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/yandex:
-    post:
-      tags:
-        - Авторизация Яндекс ID
-      summary: Авторизация по токену Яндекс ID
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - city_id
-                - token
-              properties:
-                city_id:
-                  $ref: '#/components/schemas/CityId'
-                token:
-                  type: string
-                  description: Токен Яндекс ID
-                privacy:
-                  $ref: '#/components/schemas/AuthPrivacy'
-                promo:
-                  $ref: '#/components/schemas/AuthPromo'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccess'
+          description: Список улиц
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - streets
+                properties:
+                  streets:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - city
+                        - label
+                        - value
+                      properties:
+                        id:
+                          type: string
+                          description: Идентификатор улицы (КЛАДР или внутренний)
+                          example: 77000000000225300
+                        city:
+                          type: string
+                          description: Название населенного пункта
+                          example: Москва
+                        label:
+                          type: string
+                          description: Полное название улицы для отображения
+                          example: ул Пермская
+                        value:
+                          type: string
+                          description: Название улицы для поля
+                          example: Пермская
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -864,59 +767,54 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/phone:
-    post:
+  /suggestions/houses:
+    get:
       tags:
-        - Авторизация по телефону
-      summary: Отправка кода подтверждения
-      description: Отправляет код подтверждения для авторизации по телефону
+        - Подсказки адресов
+      summary: Поиск домов
+      description: Возвращает список домов по улице (только для России)
+      security:
+        - BearerAuth: [ ]
       parameters:
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/StreetId'
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthPhoneRequest'
       responses:
         '200':
-          $ref: '#/components/responses/CodeSendedSuccess'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/phone/confirm:
-    post:
-      tags:
-        - Авторизация по телефону
-      summary: Авторизация по телефону
-      description: Подтверждает авторизацию по телефону кодом отправленным с помощью
-        [POST /auth/phone]
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthPhoneConfirmRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccess'
+          description: Список домов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - houses
+                properties:
+                  houses:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - label
+                        - value
+                      properties:
+                        label:
+                          type: string
+                          description: Полное название дома для отображения
+                          example: д 2
+                        value:
+                          type: string
+                          description: Название дома для поля
+                          example: 2
+                        city:
+                          type: string
+                          description: Название населенного пункта
+                          example: Москва
+                        addr:
+                          type: string
+                          description: Полный адрес до дома
+                          example: 107143, г Москва, р-н Метрогородок, ул Пермская,
+                            д 2
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -935,24 +833,98 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/login:
-    post:
+  /suggestions/places:
+    get:
       tags:
-        - Авторизация по паролю
-      summary: Авторизация по паролю
-      description: Авторизует гостя по паролю указанному при регистрации [POST /auth/register]
+        - Подсказки адресов
+      summary: Поиск мест
+      description: Возвращает список мест (используется для поиска по миру, кроме
+        России)
+      security:
+        - BearerAuth: [ ]
       parameters:
+        - $ref: '#/components/parameters/CityId'
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/Session'
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          $ref: '#/components/responses/AuthSuccess'
+          description: Список мест
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - session
+                  - results
+                properties:
+                  session:
+                    type: string
+                    description: Текущая сессия запросов. Используется для уменьшения
+                      стоимости запросов
+                    example: 6a0027be-5438-4b0b-8fa3-1fa53e04605b
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - city
+                        - label
+                        - value
+                      properties:
+                        id:
+                          type: string
+                          description: Идентификатор места
+                          example: ChIJHUk7Zlk0tUYRXL0A-_ggV8E
+                        city:
+                          type: string
+                          description: Название населенного пункта
+                          example: Москва, Россия
+                        label:
+                          type: string
+                          description: Полное название места для отображения
+                          example: Пермская улица, 2, Москва, Россия
+                        value:
+                          type: string
+                          description: Название места для поля
+                          example: Пермская, 2
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /suggestions/places/complete:
+    get:
+      tags:
+        - Подсказки адресов
+      summary: Детализация места
+      description: Возвращает детальную информацию о месте (используется для поиска
+        по миру, кроме России)
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/PlaceId'
+        - $ref: '#/components/parameters/Session'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          $ref: '#/components/responses/GooglePlace'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -963,40 +935,6 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/recovery:
-    post:
-      tags:
-        - Авторизация по паролю
-      summary: Восстановление пароля
-      description: Отправляет новый пароль для авторизации по номеру телефона
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RecoveryRequest'
-      responses:
-        '200':
-          description: Пароль отправлен
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
@@ -1011,7 +949,7 @@ paths:
     post:
       tags:
         - Регистрация
-      summary: Регистрация гостя по телефону
+      summary: Регистрация по телефону
       description: Отправляет код для подтверждения регистрации гостя
       parameters:
         - $ref: '#/components/parameters/Lang'
@@ -1078,22 +1016,331 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /auth/logout:
+  /auth/recovery:
     post:
       tags:
-        - Выход
-      summary: Выход
-      security:
-        - BearerAuth: [ ]
-      description: Сбрасывает авторизацию
+        - Регистрация
+      summary: Восстановление пароля
+      description: Отправляет новый пароль для авторизации по номеру телефона
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoveryRequest'
+      responses:
+        '200':
+          description: Пароль отправлен
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/refresh:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по refresh-токену
+      description: Выдаёт новый access-токен по действующему refresh-токену и обновляет его
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/anonymous:
+    post:
+      tags:
+        - Авторизация
+      summary: Анонимная авторизация
+      description: Авторизует любого пользователя без ввода номера телефона при включеной
+        настройке SITE_AUTH_ANONYMOUS
       parameters:
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
       responses:
         '200':
-          description: Авторизация сброшена
+          $ref: '#/components/responses/AuthSuccess'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/telegram/session:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по сессии Telegram бота
+      description: Авторизует гостя по сессии переданной ботом
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - session_hash
+              properties:
+                session_hash:
+                  type: string
+                  description: MD5-хэш сессии
+                  example: e5440561a26066f4b18101ff563312de
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/telegram/login:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по данным Telegram Mini App
+      description: Авторизует гостя по данным переданным из Telegram Mini App
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - init_data
+              properties:
+                init_data:
+                  $ref: '#/components/schemas/TgInitData'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/yandex:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по токену Яндекс ID
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - city_id
+                - token
+              properties:
+                city_id:
+                  $ref: '#/components/schemas/CityId'
+                token:
+                  type: string
+                  description: Токен Яндекс ID
+                privacy:
+                  $ref: '#/components/schemas/AuthPrivacy'
+                promo:
+                  $ref: '#/components/schemas/AuthPromo'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/login:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по паролю
+      description: Авторизует гостя по паролю указанному при регистрации [POST /auth/register]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/phone:
+    post:
+      tags:
+        - Авторизация
+      summary: Отправка кода по телефону
+      description: Отправляет код подтверждения для авторизации по телефону
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthPhoneRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CodeSendedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/phone/confirm:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по телефону
+      description: Подтверждает авторизацию по телефону кодом отправленным с помощью
+        [POST /auth/phone]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthPhoneConfirmRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
@@ -1303,6 +1550,183 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/logout:
+    post:
+      tags:
+        - Выход
+      summary: Выход
+      security:
+        - BearerAuth: [ ]
+      description: Сбрасывает авторизацию
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Авторизация сброшена
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /cities:
+    get:
+      tags:
+        - Места
+      summary: Список городов
+      description: Возвращает список доступных городов
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Массив доступных городов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - cities
+                properties:
+                  cities:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/CityId'
+                        folder:
+                          $ref: '#/components/schemas/CityFolder'
+                        name:
+                          $ref: '#/components/schemas/CityName'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /cities/{city_id}:
+    get:
+      tags:
+        - Места
+      summary: Информация о городе
+      description: Возвращает информацию о городе
+      parameters:
+        - in: path
+          name: city_id
+          description: Идентификатор города
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Информация о городе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /places:
+    get:
+      tags:
+        - Места
+      summary: Места самовывоза
+      description: Возвращает список доступных заведений самовывоза с городами
+      parameters:
+        - $ref: '#/components/parameters/ShopId'
+        - in: query
+          name: lat
+          description: Местонахождение гостя (широта)
+          required: false
+          schema:
+            type: number
+            example: 55.878315
+        - in: query
+          name: lon
+          description: Местонахождение гостя (долгота)
+          required: false
+          schema:
+            type: number
+            example: 37.65372
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Массив доступных городов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - cities
+                properties:
+                  cities:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - shops
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/CityId'
+                        name:
+                          $ref: '#/components/schemas/CityName'
+                        folder:
+                          $ref: '#/components/schemas/CityFolder'
+                        shops:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Shop'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
@@ -1607,8 +2031,8 @@ paths:
   /banners:
     get:
       tags:
-        - Страницы
-      summary: Баннеры для страниц
+        - Баннеры
+      summary: Баннеры
       description: Возвращает список баннеров для страниц
       parameters:
         - $ref: '#/components/parameters/Path'
@@ -1646,7 +2070,7 @@ paths:
   /offers:
     get:
       tags:
-        - Страницы
+        - Акции
       summary: Акции
       description: Возвращает список акций
       parameters:
@@ -1686,10 +2110,142 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /products:
+    get:
+      tags:
+        - Продукты
+      summary: Список продуктов
+      description: Возвращает список продуктов группы
+      parameters:
+        - $ref: '#/components/parameters/CityId'
+        - $ref: '#/components/parameters/EntityId'
+        - $ref: '#/components/parameters/ShopId'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageLimit'
+        - $ref: '#/components/parameters/IsQr'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Доступные продукты
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - version
+                properties:
+                  items:
+                    oneOf:
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/ProductListItemV0'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/ProductListItemV1'
+                      - type: array
+                        items:
+                          $ref: '#/components/schemas/ProductListItemV2'
+                  version:
+                    $ref: '#/components/schemas/MenuVersion'
+                  next:
+                    type: integer
+                    description: Номер следующей страницы, если она есть
+                    example: 1
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /products/details:
+    get:
+      tags:
+        - Продукты
+      summary: Информация о продукте
+      description: Возвращает детальную информацию о продукте
+      parameters:
+        - $ref: '#/components/parameters/CityId'
+        - $ref: '#/components/parameters/ProductId'
+        - $ref: '#/components/parameters/ParentGroup'
+        - $ref: '#/components/parameters/ShopId'
+        - $ref: '#/components/parameters/IsQr'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Информация о продукте
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ProductV0'
+                  - $ref: '#/components/schemas/ProductV1'
+                  - $ref: '#/components/schemas/ProductV2'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /qr:
+    get:
+      tags:
+        - QR-меню
+      summary: Информация о QR-меню
+      description: Возвращает информацию о QR-меню по заведению
+      parameters:
+        - in: query
+          name: shop_id
+          description: Идентификатор заведения
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          $ref: '#/components/responses/QrPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /sitemap:
     get:
       tags:
-        - Страницы
+        - Фиды
       summary: Sitemap
       description: Возращает sitemap сайта
       parameters:
@@ -1736,7 +2292,7 @@ paths:
   /feed:
     get:
       tags:
-        - Страницы
+        - Фиды
       summary: YML-фид
       description: Возращает YML-фид магазина
       parameters:
@@ -1843,289 +2399,6 @@ paths:
                                   type: string
                                 weight:
                                   type: number
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /qr:
-    get:
-      tags:
-        - Страницы
-      summary: Информация о QR-меню
-      description: Возвращает информацию о QR-меню по заведению
-      parameters:
-        - in: query
-          name: shop_id
-          description: Идентификатор заведения
-          required: true
-          schema:
-            type: integer
-            example: 1
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          $ref: '#/components/responses/QrPage'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /cities:
-    get:
-      tags:
-        - Места
-      summary: Список городов
-      description: Возвращает список доступных городов
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Массив доступных городов
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - cities
-                properties:
-                  cities:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - name
-                      properties:
-                        id:
-                          $ref: '#/components/schemas/CityId'
-                        folder:
-                          $ref: '#/components/schemas/CityFolder'
-                        name:
-                          $ref: '#/components/schemas/CityName'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /cities/{city_id}:
-    get:
-      tags:
-        - Места
-      summary: Информация о городе
-      description: Возвращает информацию о городе
-      parameters:
-        - in: path
-          name: city_id
-          description: Идентификатор города
-          required: true
-          schema:
-            type: integer
-            example: 1
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Информация о городе
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/City'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /places:
-    get:
-      tags:
-        - Места
-      summary: Места самовывоза
-      description: Возвращает список доступных заведений самовывоза с городами
-      parameters:
-        - $ref: '#/components/parameters/ShopId'
-        - in: query
-          name: lat
-          description: Местонахождение гостя (широта)
-          required: false
-          schema:
-            type: number
-            example: 55.878315
-        - in: query
-          name: lon
-          description: Местонахождение гостя (долгота)
-          required: false
-          schema:
-            type: number
-            example: 37.65372
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Массив доступных городов
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - cities
-                properties:
-                  cities:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - name
-                        - shops
-                      properties:
-                        id:
-                          $ref: '#/components/schemas/CityId'
-                        name:
-                          $ref: '#/components/schemas/CityName'
-                        folder:
-                          $ref: '#/components/schemas/CityFolder'
-                        shops:
-                          type: array
-                          items:
-                            $ref: '#/components/schemas/Shop'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /products:
-    get:
-      tags:
-        - Продукты
-      summary: Список продуктов
-      description: Возвращает список продуктов группы
-      parameters:
-        - $ref: '#/components/parameters/CityId'
-        - $ref: '#/components/parameters/EntityId'
-        - $ref: '#/components/parameters/ShopId'
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageLimit'
-        - $ref: '#/components/parameters/IsQr'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Доступные продукты
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - items
-                  - version
-                properties:
-                  items:
-                    oneOf:
-                      - type: array
-                        items:
-                          $ref: '#/components/schemas/ProductListItemV0'
-                      - type: array
-                        items:
-                          $ref: '#/components/schemas/ProductListItemV1'
-                      - type: array
-                        items:
-                          $ref: '#/components/schemas/ProductListItemV2'
-                  version:
-                    $ref: '#/components/schemas/MenuVersion'
-                  next:
-                    type: integer
-                    description: Номер следующей страницы, если она есть
-                    example: 1
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /products/details:
-    get:
-      tags:
-        - Продукты
-      summary: Информация о продукте
-      description: Возвращает детальную информацию о продукте
-      parameters:
-        - $ref: '#/components/parameters/CityId'
-        - $ref: '#/components/parameters/ProductId'
-        - $ref: '#/components/parameters/ParentGroup'
-        - $ref: '#/components/parameters/ShopId'
-        - $ref: '#/components/parameters/IsQr'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Информация о продукте
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ProductV0'
-                  - $ref: '#/components/schemas/ProductV1'
-                  - $ref: '#/components/schemas/ProductV2'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '402':
@@ -2379,7 +2652,7 @@ paths:
   /orders:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Создание заказа
       description: Создает заказ из подготовленной корзины и возвращает GUID
       security:
@@ -2427,7 +2700,7 @@ paths:
           $ref: '#/components/responses/ServiceUnavailableError'
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Список заказов гостя
       description: Возвращает список заказов гостя
       security:
@@ -2475,7 +2748,7 @@ paths:
   /orders/{order_guid}:bindAddress:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Адрес доставки/самовывоза
       description: Привязывает к заказу адрес доставки или заведение самовывоза
       security:
@@ -2536,7 +2809,7 @@ paths:
   /orders/{order_guid}:pay:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Оплата заказа
       description: Инициализирует или производит оплату
       security:
@@ -2588,7 +2861,7 @@ paths:
   /orders/{order_guid}:confirmPay:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Подтвержение оплаты заказа
       description: Подтверждает оплату заказа виджетом
       security:
@@ -2629,7 +2902,7 @@ paths:
   /orders/{order_guid}:view:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Отметка о просмотре заказа
       description: Отмечает заказ просмотренным гостем и возвращает данные об электронной
         коммерции для отправки в Яндекс.Метрику и Google Analitycs
@@ -2673,7 +2946,7 @@ paths:
   /orders/{order_guid}:tips:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Оплата чаевых
       description: Создает оплату чаевых и возвращает ссылку на форму оплаты
       security:
@@ -2753,7 +3026,7 @@ paths:
   /orders/{order_guid}:repeat:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Повторение заказа
       description: Добавляет указаный заказ в корзину
       security:
@@ -2792,7 +3065,7 @@ paths:
   /orders/{order_guid}:review:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Отзыв на заказ
       description: Добавление отзыва к заказу
       security:
@@ -2833,7 +3106,7 @@ paths:
   /orders/reviews-media:
     post:
       tags:
-        - Оформление заказов
+        - Оформление заказа
       summary: Изображения для отзыва
       description: Добавление изображений для отзывов
       security:
@@ -2892,7 +3165,7 @@ paths:
   /orders/active:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Активные заказы гостя
       description: Возвращает список идентификаторов активных заказов гостя
       security:
@@ -2935,7 +3208,7 @@ paths:
   /orders/ontime-list:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Список доступных часов для заказа на время
       description: При передаче параметра city_id - возвращает доступные часы для
         заказа доставки на время указанного города, при передаче shop_id - возвращает
@@ -3001,7 +3274,7 @@ paths:
   /orders/reviews-presets:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Список доступных пресетов для отзыва заказа
       security:
         - BearerAuth: [ ]
@@ -3061,7 +3334,7 @@ paths:
   /orders/{order_guid}:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Информация о заказе гостя
       description: Возвращает информацию о заказе гостя
       security:
@@ -3098,7 +3371,7 @@ paths:
   /orders/{order_guid}/status:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Информация о статусе заказа
       description: Возвращает информацию о статусе заказа гостя
       security:
@@ -3135,7 +3408,7 @@ paths:
   /orders/{order_guid}/active-tables:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Активные столы заказа
       description: Возвращает информацию о доступных столах для заказа
       security:
@@ -3182,7 +3455,7 @@ paths:
   /orders/{order_guid}/available-places:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Доступные места заказа
       description: Возвращает информацию о доступных адресах доставки и заведениях
         самовывоза для заказа
@@ -3236,7 +3509,7 @@ paths:
   /orders/{order_guid}/delivery-params:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Параметры доставки для заказа
       description: Возвращает параметры доставки для заказа по адресу
       security:
@@ -3289,7 +3562,7 @@ paths:
   /orders/{order_guid}/tip-options:
     get:
       tags:
-        - Заказы
+        - Информация о заказах
       summary: Информация о чаевых
       description: Возвращает информацию о командах и получателях чаевых (только в
         России)
@@ -3421,251 +3694,6 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /suggestions/streets:
-    get:
-      tags:
-        - Подсказки адресов
-      summary: Поиск улиц
-      description: Возвращает список улиц (только для России)
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - $ref: '#/components/parameters/CityId'
-        - $ref: '#/components/parameters/Query'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Список улиц
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - streets
-                properties:
-                  streets:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - city
-                        - label
-                        - value
-                      properties:
-                        id:
-                          type: string
-                          description: Идентификатор улицы (КЛАДР или внутренний)
-                          example: 77000000000225300
-                        city:
-                          type: string
-                          description: Название населенного пункта
-                          example: Москва
-                        label:
-                          type: string
-                          description: Полное название улицы для отображения
-                          example: ул Пермская
-                        value:
-                          type: string
-                          description: Название улицы для поля
-                          example: Пермская
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /suggestions/houses:
-    get:
-      tags:
-        - Подсказки адресов
-      summary: Поиск домов
-      description: Возвращает список домов по улице (только для России)
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - $ref: '#/components/parameters/Query'
-        - $ref: '#/components/parameters/StreetId'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Список домов
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - houses
-                properties:
-                  houses:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - label
-                        - value
-                      properties:
-                        label:
-                          type: string
-                          description: Полное название дома для отображения
-                          example: д 2
-                        value:
-                          type: string
-                          description: Название дома для поля
-                          example: 2
-                        city:
-                          type: string
-                          description: Название населенного пункта
-                          example: Москва
-                        addr:
-                          type: string
-                          description: Полный адрес до дома
-                          example: 107143, г Москва, р-н Метрогородок, ул Пермская,
-                            д 2
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /suggestions/places:
-    get:
-      tags:
-        - Подсказки адресов
-      summary: Поиск мест
-      description: Возвращает список мест (используется для поиска по миру, кроме
-        России)
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - $ref: '#/components/parameters/CityId'
-        - $ref: '#/components/parameters/Query'
-        - $ref: '#/components/parameters/Session'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          description: Список мест
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - session
-                  - results
-                properties:
-                  session:
-                    type: string
-                    description: Текущая сессия запросов. Используется для уменьшения
-                      стоимости запросов
-                    example: 6a0027be-5438-4b0b-8fa3-1fa53e04605b
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - city
-                        - label
-                        - value
-                      properties:
-                        id:
-                          type: string
-                          description: Идентификатор места
-                          example: ChIJHUk7Zlk0tUYRXL0A-_ggV8E
-                        city:
-                          type: string
-                          description: Название населенного пункта
-                          example: Москва, Россия
-                        label:
-                          type: string
-                          description: Полное название места для отображения
-                          example: Пермская улица, 2, Москва, Россия
-                        value:
-                          type: string
-                          description: Название места для поля
-                          example: Пермская, 2
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
-  /suggestions/places/complete:
-    get:
-      tags:
-        - Подсказки адресов
-      summary: Детализация места
-      description: Возвращает детальную информацию о месте (используется для поиска
-        по миру, кроме России)
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - $ref: '#/components/parameters/PlaceId'
-        - $ref: '#/components/parameters/Session'
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      responses:
-        '200':
-          $ref: '#/components/responses/GooglePlace'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '409':
