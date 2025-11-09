@@ -12,6 +12,7 @@ info:
     name: Публичная оферта
   x-logo:
     url: https://docs.smartofood.ru/images/logo.png
+    href: https://docs.smartofood.ru/api-client-v1/
 
 servers:
   - url: https://{domain}/api/client/v1
