@@ -33,7 +33,6 @@ x-tagGroups:
       - Регистрация
       - Авторизация
       - Профиль
-      - Выход
   - name: Сайт
     tags:
       - Места
@@ -1564,7 +1563,7 @@ paths:
   /auth/logout:
     post:
       tags:
-        - Выход
+        - Профиль
       summary: Выход
       security:
         - BearerAuth: [ ]
