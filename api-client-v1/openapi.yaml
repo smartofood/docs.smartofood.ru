@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.17.0
+  version: 1.17.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -3884,8 +3884,9 @@ components:
         type: string
         enum:
           - ru
-          - en
           - kk
+          - en
+          - es
         example: ru
       description: Заголовок для указания языка ответа
       required: false
