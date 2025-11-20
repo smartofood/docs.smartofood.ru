@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.17.1
+  version: 1.18.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -4311,6 +4311,18 @@ components:
       type: boolean
       description: Страница публичной оферты
       example: false
+    IsPersonalData:
+      type: boolean
+      description: Согласие на обработку персональных данных
+      example: false
+    IsPromoMaterials:
+      type: boolean
+      description: Согласие на рекламную информацию
+      example: false
+    IsCookiePolicy:
+      type: boolean
+      description: Политика в отношении файлов cookie
+      example: false
     PageFolder:
       type: string
       description: Папка страницы
@@ -4922,6 +4934,37 @@ components:
       type: boolean
       description: Адрес вне зоны доставки
       example: true
+    QrNavItem:
+      type: object
+      required:
+        - name
+        - path
+        - is_privacy
+        - is_public_offer
+        - is_personal_data
+        - is_promo_materials
+        - is_cookie_policy
+        - folder
+        - url
+      properties:
+        name:
+          $ref: '#/components/schemas/PageName'
+        path:
+          $ref: '#/components/schemas/PagePath'
+        is_privacy:
+          $ref: '#/components/schemas/IsPrivacy'
+        is_public_offer:
+          $ref: '#/components/schemas/IsPublicOffer'
+        is_personal_data:
+          $ref: '#/components/schemas/IsPersonalData'
+        is_promo_materials:
+          $ref: '#/components/schemas/IsPromoMaterials'
+        is_cookie_policy:
+          $ref: '#/components/schemas/IsCookiePolicy'
+        folder:
+          $ref: '#/components/schemas/PageFolder'
+        url:
+          $ref: '#/components/schemas/PageUrl'
     NavItem:
       type: object
       required:
@@ -4931,6 +4974,9 @@ components:
         - no_follow
         - is_privacy
         - is_public_offer
+        - is_personal_data
+        - is_promo_materials
+        - is_cookie_policy
         - folder
         - url
         - selected
@@ -4950,6 +4996,12 @@ components:
           $ref: '#/components/schemas/IsPrivacy'
         is_public_offer:
           $ref: '#/components/schemas/IsPublicOffer'
+        is_personal_data:
+          $ref: '#/components/schemas/IsPersonalData'
+        is_promo_materials:
+          $ref: '#/components/schemas/IsPromoMaterials'
+        is_cookie_policy:
+          $ref: '#/components/schemas/IsCookiePolicy'
         folder:
           $ref: '#/components/schemas/PageFolder'
         url:
@@ -5039,6 +5091,12 @@ components:
           $ref: '#/components/schemas/NavItem'
         public_offer:
           $ref: '#/components/schemas/NavItem'
+        personal_data:
+          $ref: '#/components/schemas/NavItem'
+        promo_materials:
+          $ref: '#/components/schemas/NavItem'
+        cookie_policy:
+          $ref: '#/components/schemas/NavItem'
         images:
           $ref: '#/components/schemas/NavImages'
         hours:
@@ -5060,6 +5118,9 @@ components:
         - in_footer
         - is_privacy
         - is_public_offer
+        - is_personal_data
+        - is_promo_materials
+        - is_cookie_policy
         - folder
         - prefix
         - url
@@ -5121,6 +5182,12 @@ components:
           $ref: '#/components/schemas/IsPrivacy'
         is_public_offer:
           $ref: '#/components/schemas/IsPublicOffer'
+        is_personal_data:
+          $ref: '#/components/schemas/IsPersonalData'
+        is_promo_materials:
+          $ref: '#/components/schemas/IsPromoMaterials'
+        is_cookie_policy:
+          $ref: '#/components/schemas/IsCookiePolicy'
         folder:
           $ref: '#/components/schemas/PageFolder'
         prefix:
@@ -8128,7 +8195,6 @@ components:
                 description: Навигация
                 required:
                   - main
-                  - privacy
                 properties:
                   main:
                     type: array
@@ -8149,31 +8215,15 @@ components:
                           description: Цифровой идентификатор группы для скрола
                           nullable: true
                   privacy:
-                    type: object
-                    required:
-                      - name
-                      - path
-                      - url
-                    properties:
-                      name:
-                        $ref: '#/components/schemas/PageName'
-                      path:
-                        $ref: '#/components/schemas/PagePath'
-                      url:
-                        $ref: '#/components/schemas/PageUrl'
+                    $ref: '#/components/schemas/QrNavItem'
                   public_offer:
-                    type: object
-                    required:
-                      - name
-                      - path
-                      - url
-                    properties:
-                      name:
-                        $ref: '#/components/schemas/PageName'
-                      path:
-                        $ref: '#/components/schemas/PagePath'
-                      url:
-                        $ref: '#/components/schemas/PageUrl'
+                    $ref: '#/components/schemas/QrNavItem'
+                  personal_data:
+                    $ref: '#/components/schemas/QrNavItem'
+                  promo_materials:
+                    $ref: '#/components/schemas/QrNavItem'
+                  cookie_policy:
+                    $ref: '#/components/schemas/QrNavItem'
               products:
                 type: object
                 required:
