@@ -4286,6 +4286,9 @@ components:
         - file
         - privacy
         - public_offer
+        - personal_data
+        - promo_materials
+        - cookie_policy
       example: group
     PageName:
       type: string
