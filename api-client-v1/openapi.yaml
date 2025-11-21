@@ -1818,7 +1818,7 @@ paths:
           required: true
           description: Тип страницы
           schema:
-            $ref: '#/components/schemas/PageType'
+            $ref: '#/components/schemas/RequestPageType'
         - in: query
           name: city_id
           description: Идентификатор города
@@ -4272,7 +4272,7 @@ components:
       description: Идентификатор промокода
       example: 1
       nullable: true
-    PageType:
+    RequestPageType:
       type: string
       description: Тип страницы
       enum:
@@ -4289,6 +4289,19 @@ components:
         - personal_data
         - promo_materials
         - cookie_policy
+      example: group
+    PageType:
+      type: string
+      description: Тип страницы
+      enum:
+        - main
+        - group
+        - product
+        - offers
+        - text
+        - link
+        - redirect
+        - file
       example: group
     PageName:
       type: string
