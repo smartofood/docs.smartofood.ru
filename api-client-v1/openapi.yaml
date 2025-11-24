@@ -3911,43 +3911,38 @@ components:
   schemas:
     MobileGridType:
       type: string
-      description: 'Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная'
+      description: "Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная\n\nДоступна начиная с версии `4.2.0`"
       example: vertical_one
       enum:
         - vertical_one
         - vertical_two
         - horizontal
-      x-since-version: '4.2.0'
     MobileGridStyle:
       type: string
-      description: 'Стиль карточки мобильной сетки: с фоном и без'
+      description: "Стиль карточки мобильной сетки: с фоном и без\n\nДоступна начиная с версии `4.2.0`"
       example: with_background
       enum:
         - with_background
         - without_background
-      x-since-version: '4.2.0'
     MobileGridProportion:
       type: string
-      description: 'Пропорции изображения мобильной сетки: горизонтальные, квадратные и вертикальные'
+      description: "Пропорции изображения мобильной сетки: горизонтальные, квадратные и вертикальные\n\nДоступна начиная с версии `4.2.0`"
       example: horizontal
       enum:
         - horizontal
         - square
         - vertical
-      x-since-version: '4.2.0'
     MobileGridDescription:
       type: boolean
-      description: Описание в мобильной сетке
+      description: "Описание в мобильной сетке\n\nДоступна начиная с версии `4.2.0`"
       example: true
-      x-since-version: '4.2.0'
     MobileGridImage:
       type: boolean
-      description: Изображение в мобильной сетке
+      description: "Изображение в мобильной сетке\n\nДоступна начиная с версии `4.2.0`"
       example: true
-      x-since-version: '4.2.0'
     MobileGrid:
       type: object
-      description: Мобильная сетка
+      description: "Мобильная сетка\n\nДоступна начиная с версии `4.2.0`"
       properties:
         type:
           $ref: '#/components/schemas/MobileGridType'
