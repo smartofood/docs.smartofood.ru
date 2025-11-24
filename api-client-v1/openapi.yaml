@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.18.0
+  version: 1.19.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -408,6 +408,16 @@ paths:
                     enum:
                       - cover
                       - contain
+                  SITE_MOBILE_GRID_TYPE:
+                    $ref: '#/components/schemas/MobileGridType'
+                  SITE_MOBILE_GRID_STYLE:
+                    $ref: '#/components/schemas/MobileGridStyle'
+                  SITE_MOBILE_GRID_DESCRIPTION:
+                    $ref: '#/components/schemas/MobileGridDescription'
+                  SITE_MOBILE_GRID_IMAGE:
+                    $ref: '#/components/schemas/MobileGridImage'
+                  SITE_MOBILE_GRID_PROPORTIONS:
+                    $ref: '#/components/schemas/MobileGridProportion'
                   SITE_LINK_FB:
                     type: string
                     description: Ссылка на группу в Фейсбуке
@@ -2136,6 +2146,8 @@ paths:
                   - items
                   - version
                 properties:
+                  mobile_grid:
+                    $ref: '#/components/schemas/MobileGrid'
                   items:
                     oneOf:
                       - type: array
@@ -3897,6 +3909,56 @@ components:
         type: string
       required: true
   schemas:
+    MobileGridType:
+      type: string
+      description: 'Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная'
+      example: vertical_one
+      enum:
+        - vertical_one
+        - vertical_two
+        - horizontal
+      x-since-version: '4.2.0'
+    MobileGridStyle:
+      type: string
+      description: 'Стиль карточки мобильной сетки: с фоном и без'
+      example: with_background
+      enum:
+        - with_background
+        - without_background
+      x-since-version: '4.2.0'
+    MobileGridProportion:
+      type: string
+      description: 'Пропорции изображения мобильной сетки: горизонтальные, квадратные и вертикальные'
+      example: horizontal
+      enum:
+        - horizontal
+        - square
+        - vertical
+      x-since-version: '4.2.0'
+    MobileGridDescription:
+      type: boolean
+      description: Описание в мобильной сетке
+      example: true
+      x-since-version: '4.2.0'
+    MobileGridImage:
+      type: boolean
+      description: Изображение в мобильной сетке
+      example: true
+      x-since-version: '4.2.0'
+    MobileGrid:
+      type: object
+      description: Мобильная сетка
+      properties:
+        type:
+          $ref: '#/components/schemas/MobileGridType'
+        style:
+          $ref: '#/components/schemas/MobileGridStyle'
+        description:
+          $ref: '#/components/schemas/MobileGridDescription'
+        image:
+          $ref: '#/components/schemas/MobileGridImage'
+        proportion:
+          $ref: '#/components/schemas/MobileGridProportion'
     TgInitData:
       type: string
       description: Строка window.Telegram.WebApp.initData
@@ -8275,6 +8337,8 @@ components:
                         $ref: '#/components/schemas/IsLimitedHidden'
                       timezone:
                         $ref: '#/components/schemas/TimeZone'
+                      mobile_grid:
+                        $ref: '#/components/schemas/MobileGrid'
                       image_url:
                         $ref: '#/components/schemas/ImageUrl'
                       items:
