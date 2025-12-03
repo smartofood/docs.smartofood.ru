@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.19.0
+  version: 1.20.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -5858,6 +5858,11 @@ components:
           description: Бейджи
           items:
             $ref: '#/components/schemas/ProductBadge'
+        defaults:
+          type: array
+          description: Модификаторы по-умолчанию
+          items:
+            $ref: '#/components/schemas/DefaultModifierV2'
     ProductListItemQRV0:
       type: object
       required:
@@ -6108,6 +6113,11 @@ components:
           description: Бейджи
           items:
             $ref: '#/components/schemas/ProductBadge'
+        defaults:
+          type: array
+          description: Модификаторы по-умолчанию
+          items:
+            $ref: '#/components/schemas/DefaultModifierV2'
     ProductBadge:
       type: string
       description: Бейдж продукта
@@ -6658,6 +6668,71 @@ components:
           $ref: '#/components/schemas/ProductPrice'
         price_raw:
           $ref: '#/components/schemas/ProductPriceRaw'
+    DefaultModifierV2:
+      type: object
+      required:
+        - group_id
+        - product_id
+        - size_id
+        - modifier_group_id
+        - modifier_id
+        - name
+        - min
+        - max
+        - default
+        - free
+        - is_required
+        - is_prohibited
+        - independent_quantity
+        - hide_if_default
+        - price
+        - weight
+        - price_raw
+        - weight_raw
+        - selector
+      properties:
+        group_id:
+          $ref: '#/components/schemas/ParentGroup'
+        product_id:
+          $ref: '#/components/schemas/ProductId'
+        size_id:
+          $ref: '#/components/schemas/SizeId'
+        modifier_group_id:
+          $ref: '#/components/schemas/GroupId'
+        modifier_id:
+          $ref: '#/components/schemas/ModifierId'
+        name:
+          $ref: '#/components/schemas/ModifierName'
+        min:
+          $ref: '#/components/schemas/MinModifier'
+        max:
+          $ref: '#/components/schemas/MaxModifier'
+        default:
+          $ref: '#/components/schemas/DefaultModifier'
+        free:
+          $ref: '#/components/schemas/FreeModifier'
+        is_required:
+          $ref: '#/components/schemas/RequiredModifier'
+        is_stopped:
+          $ref: '#/components/schemas/IsStopped'
+        is_prohibited:
+          $ref: '#/components/schemas/IsProhibited'
+        independent_quantity:
+          $ref: '#/components/schemas/IndependentQuantity'
+        hide_if_default:
+          $ref: '#/components/schemas/HideIfDefault'
+        image_url:
+          $ref: '#/components/schemas/ImageUrl'
+        weight:
+          $ref: '#/components/schemas/ProductWeight'
+        weight_raw:
+          $ref: '#/components/schemas/ProductWeightRaw'
+        price:
+          $ref: '#/components/schemas/ProductPrice'
+        price_raw:
+          $ref: '#/components/schemas/ProductPriceRaw'
+        selector:
+          $ref: '#/components/schemas/IsSelector'
     ModifierGroupV2:
       type: object
       required:
