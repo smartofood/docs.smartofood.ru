@@ -2845,11 +2845,14 @@ paths:
                 type: object
                 required:
                   - completed
+                  - ecommerce
                 properties:
                   completed:
                     $ref: '#/components/schemas/PaymentCompleted'
                   payment:
                     $ref: '#/components/schemas/OnlinePayment'
+                  ecommerce:
+                    $ref: '#/components/schemas/EcommerceStruct'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
