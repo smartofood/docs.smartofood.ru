@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.20.0
+  version: 1.20.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -3955,7 +3955,7 @@ components:
   schemas:
     MobileGridType:
       type: string
-      description: "Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная\n\nДоступна начиная с версии `4.2.0`"
+      description: "Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная"
       example: vertical_one
       enum:
         - vertical_one
@@ -3963,30 +3963,34 @@ components:
         - horizontal
     MobileGridStyle:
       type: string
-      description: "Стиль карточки мобильной сетки: с фоном и без\n\nДоступна начиная с версии `4.2.0`"
+      description: "Стиль карточки мобильной сетки: с фоном и без"
       example: with_background
       enum:
         - with_background
         - without_background
     MobileGridProportion:
       type: string
-      description: "Пропорции изображения мобильной сетки: горизонтальные, квадратные и вертикальные\n\nДоступна начиная с версии `4.2.0`"
+      description: "Пропорции изображения мобильной сетки: горизонтальные, квадратные и вертикальные"
       example: horizontal
       enum:
         - horizontal
         - square
         - vertical
     MobileGridDescription:
-      type: boolean
-      description: "Описание в мобильной сетке\n\nДоступна начиная с версии `4.2.0`"
-      example: true
+      type: string
+      description: "Параметры описания мобильной сетки: полное описание, первые две линии, скрыто"
+      example: full
+      enum:
+        - full
+        - two_lines
+        - hidden
     MobileGridImage:
       type: boolean
-      description: "Изображение в мобильной сетке\n\nДоступна начиная с версии `4.2.0`"
+      description: "Изображение в мобильной сетке"
       example: true
     MobileGrid:
       type: object
-      description: "Мобильная сетка\n\nДоступна начиная с версии `4.2.0`"
+      description: "Мобильная сетка"
       properties:
         type:
           $ref: '#/components/schemas/MobileGridType'
