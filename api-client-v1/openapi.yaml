@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.20.1
+  version: 1.20.2
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -220,6 +220,19 @@ paths:
                       - 'off'
                       - optional
                       - auto
+                  SITE_AUTH_PRIORITY:
+                    type: array
+                    description: Приоритет способов авторизации
+                    items:
+                      type: string
+                      enum:
+                        - phone
+                        - telegram
+                        - yandex
+                    example:
+                      - phone
+                      - telegram
+                      - yandex
                   SITE_AUTH_TYPE:
                     type: string
                     description: Авторизация по телефону
