@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.20.3
+  version: 1.20.4
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -147,6 +147,14 @@ paths:
                     type: boolean
                     description: Запрос выполнен нашим WebView приложением
                     example: true
+                  SITE_WEBAPP_NAME:
+                    type: string
+                    description: Название приложения в сторах
+                    example: 'Smartofood Demo'
+                  SITE_WEBAPP_BUNDLE:
+                    type: string
+                    description: Пакет приложения в сторах
+                    example: 'ru.smartofood.demo'
                   SITE_EXTERNAL_AUTH_WEBAPP:
                     type: boolean
                     description: Внешние сервисы авторизации разрешены в WebView приложении
