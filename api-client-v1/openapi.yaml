@@ -2781,6 +2781,62 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /orders/{order_guid}:calculateDelivery:
+    post:
+      tags:
+        - Оформление заказа
+      summary: Расчет доставки для заказа
+      description: Рассчитывает параметры доставки для заказа по адресу
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/OrderGuid'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+              properties:
+                address:
+                  type: string
+                  description: Адрес доставки
+                  example: 127642, г Москва, ул Сухонская, д 11, кв 89
+                on_time:
+                  type: string
+                  description: Доставка на время
+                  example: '2024-10-25 14:30:00'
+      responses:
+        '200':
+          description: Параметры доставки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculateDelivery'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}:bindAddress:
     post:
       tags:
@@ -3588,6 +3644,7 @@ paths:
           $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}/delivery-params:
     get:
+      deprecated: true
       tags:
         - Информация о заказах
       summary: Параметры доставки для заказа
@@ -8017,6 +8074,71 @@ components:
           $ref: '#/components/schemas/OpenTime'
         close_time:
           $ref: '#/components/schemas/CloseTime'
+    CalculateDelivery:
+      type: object
+      required:
+        - city_id
+        - shop_id
+        - delivery_price
+        - free_delivery
+        - free_delivery_left
+        - minimum_order
+        - pay_sum_raw
+        - sum_before_delivery_raw
+        - service_fee_raw
+        - pay_sum
+        - sum_before_delivery
+        - service_fee
+        - is_can_delivery
+        - is_default
+      properties:
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
+        zone_id:
+          $ref: '#/components/schemas/ZoneId'
+        delivery_price:
+          $ref: '#/components/schemas/DeliveryPriceRaw'
+        free_delivery:
+          $ref: '#/components/schemas/FreeDeliveryRaw'
+        free_delivery_left:
+          $ref: '#/components/schemas/FreeDeliveryLeftRaw'
+        minimum_order:
+          $ref: '#/components/schemas/MinimumOrderRaw'
+        pay_sum_raw:
+          $ref: '#/components/schemas/PaySumRaw'
+        sum_before_delivery_raw:
+          $ref: '#/components/schemas/SumBeforeDeliveryRaw'
+        service_fee_raw:
+          $ref: '#/components/schemas/ServiceFeeRaw'
+        pay_sum:
+          $ref: '#/components/schemas/PaySum'
+        sum_before_delivery:
+          $ref: '#/components/schemas/SumBeforeDelivery'
+        service_fee:
+          $ref: '#/components/schemas/ServiceFee'
+        is_can_delivery:
+          $ref: '#/components/schemas/IsCanDelivery'
+        is_out_of_zones:
+          $ref: '#/components/schemas/IsOutOfZones'
+        delivery_guid:
+          $ref: '#/components/schemas/DeliveryGuid'
+        delivery_point:
+          type: object
+          description: Координаты точки доставки
+          required:
+            - lat
+            - lon
+          properties:
+            lat:
+              $ref: '#/components/schemas/AddrLat'
+            lon:
+              $ref: '#/components/schemas/AddrLon'
+        is_default:
+          type: boolean
+          description: Стандартное заведение доставки
+          example: false
     DeliveryParam:
       type: object
       required:
