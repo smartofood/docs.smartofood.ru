@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.20.4
+  version: 1.21.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -4967,6 +4967,14 @@ components:
         - 1
         - 2
       example: 0
+    ServiceFee:
+      type: string
+      description: Сумма сервисного сбора с валютой
+      example: 66 ₽
+    ServiceFeeRaw:
+      type: string
+      description: Сумма сервисного сбора в валюте сайта
+      example: '66.00'
     PaySum:
       type: string
       description: Сумма к оплате с валютой
@@ -7384,6 +7392,8 @@ components:
         - discount_raw
         - pay_sum
         - pay_sum_raw
+        - service_fee
+        - service_fee_raw
         - count
       properties:
         city_id:
@@ -7404,6 +7414,10 @@ components:
           $ref: '#/components/schemas/PaySum'
         pay_sum_raw:
           $ref: '#/components/schemas/PaySumRaw'
+        service_fee:
+          $ref: '#/components/schemas/ServiceFee'
+        service_fee_raw:
+          $ref: '#/components/schemas/ServiceFeeRaw'
         count:
           $ref: '#/components/schemas/CartCount'
         list:
