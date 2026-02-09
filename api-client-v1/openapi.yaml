@@ -4975,6 +4975,14 @@ components:
       type: string
       description: Сумма сервисного сбора в валюте сайта
       example: '66.00'
+    RevenueFee:
+      type: string
+      description: Сумма сбора по тарифу с валютой
+      example: 66 ₽
+    RevenueFeeRaw:
+      type: string
+      description: Сумма сбора по тарифу в валюте сайта
+      example: '66.00'
     PaySum:
       type: string
       description: Сумма к оплате с валютой
@@ -7607,14 +7615,18 @@ components:
         - created_local
         - status
         - type
+        - service_fee
         - total
+        - revenue_fee
         - pay_sum
         - sub_total
         - sum_before_delivery
         - created_iso
         - status_name
         - type_name
+        - service_fee_raw
         - total_raw
+        - revenue_fee_raw
         - pay_sum_raw
         - sub_total_raw
         - sum_before_delivery_raw
@@ -7727,8 +7739,12 @@ components:
           $ref: '#/components/schemas/CouponDiscount'
         delivery_price:
           $ref: '#/components/schemas/DeliveryPrice'
+        service_fee:
+          $ref: '#/components/schemas/ServiceFee'
         total:
           $ref: '#/components/schemas/Total'
+        revenue_fee:
+          $ref: '#/components/schemas/RevenueFee'
         cash_change:
           $ref: '#/components/schemas/CashChange'
         is_order_on_time:
@@ -7781,8 +7797,12 @@ components:
           $ref: '#/components/schemas/CouponDiscountRaw'
         delivery_price_raw:
           $ref: '#/components/schemas/DeliveryPriceRaw'
+        service_fee_raw:
+          $ref: '#/components/schemas/ServiceFeeRaw'
         total_raw:
           $ref: '#/components/schemas/TotalRaw'
+        revenue_fee_raw:
+          $ref: '#/components/schemas/RevenueFeeRaw'
         cash_change_raw:
           $ref: '#/components/schemas/CashChangeRaw'
         pay_sum_raw:
