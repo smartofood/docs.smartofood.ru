@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.21.0
+  version: 1.22.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -4141,6 +4141,21 @@ components:
       type: integer
       description: Идентификатор города
       example: 1
+    CardId:
+      type: integer
+      description: Идентификатор токена карты гостя
+      example: 1
+    CardName:
+      type: integer
+      description: Номер (название) карты гостя
+      example: '4986 29** **** 0080'
+    CardType:
+      type: string
+      description: Тип токена карты гостя (Банкоская карта, СБП)
+      example: card
+      enum:
+        - card
+        - sbp
     CityFolder:
       type: string
       description: Корневая папка города
@@ -7594,6 +7609,19 @@ components:
           $ref: '#/components/schemas/ProductPriceRaw'
         is_qr:
           $ref: '#/components/schemas/IsQr'
+    CardItem:
+      type: object
+      required:
+        - id
+        - type
+        - name
+      properties:
+        id:
+          $ref: '#/components/schemas/CardId'
+        type:
+          $ref: '#/components/schemas/CardType'
+        name:
+          $ref: '#/components/schemas/CardName'
     OrderItem:
       type: object
       required:
@@ -8710,6 +8738,7 @@ components:
               - city_id
               - registred
               - phone
+              - cards
               - is_subscribed
               - is_confirmed
               - is_test
@@ -8733,6 +8762,11 @@ components:
                 $ref: '#/components/schemas/GuestName'
               bday:
                 $ref: '#/components/schemas/GuestBDay'
+              cards:
+                type: array
+                description: Список доступных карт гостя
+                items:
+                  $ref: '#/components/schemas/CardItem'
               is_subscribed:
                 type: boolean
                 description: Подписка на рассылки включена
