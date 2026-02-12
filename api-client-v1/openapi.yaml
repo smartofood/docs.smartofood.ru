@@ -8534,6 +8534,8 @@ components:
           $ref: '#/components/schemas/PaymentType'
         persons_count:
           $ref: '#/components/schemas/PersonsCount'
+        card_id:
+          $ref: '#/components/schemas/CardId'
         table_id:
           $ref: '#/components/schemas/TableId'
         section_id:
