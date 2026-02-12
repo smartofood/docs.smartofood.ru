@@ -3675,6 +3675,51 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /orders/{order_guid}/available-cards:
+    get:
+      tags:
+        - Информация о заказах
+      summary: Доступные карты гостя
+      description: Возвращает информацию о доступных картах гостя для онлайн-оплаты
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/OrderGuid'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Информация о картах
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - cards
+                properties:
+                  cards:
+                    type: array
+                    description: Список доступных карт гостя
+                    items:
+                      $ref: '#/components/schemas/CardItem'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}/delivery-params:
     get:
       deprecated: true
