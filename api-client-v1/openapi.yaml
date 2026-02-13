@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.22.0
+  version: 1.22.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -5200,6 +5200,10 @@ components:
       type: string
       description: Промокод
       example: VESNA24
+    CouponPercent:
+      type: string
+      description: Процент скидки промокода
+      example: '15'
     IsQr:
       type: boolean
       description: Выдача для QR-меню
@@ -7603,6 +7607,12 @@ components:
               $ref: '#/components/schemas/CouponId'
             code:
               $ref: '#/components/schemas/CouponCode'
+            percent:
+              $ref: '#/components/schemas/CouponPercent'
+            marker:
+              type: boolean
+              description: Маркерный промокод
+              example: true
             notice:
               type: boolean
               description: Необходимо показать уведомление о маркерном промокоде
@@ -7908,6 +7918,8 @@ components:
           $ref: '#/components/schemas/CouponCode'
         coupon_discount:
           $ref: '#/components/schemas/CouponDiscount'
+        coupon_percent:
+          $ref: '#/components/schemas/CouponPercent'
         delivery_price:
           $ref: '#/components/schemas/DeliveryPrice'
         service_fee:
