@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.22.1
+  version: 1.22.2
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -3076,7 +3076,7 @@ paths:
       tags:
         - Оформление заказа
       summary: Оплата чаевых
-      description: Создает оплату чаевых и возвращает ссылку на форму оплаты
+      description: Инициирует оплату чаевых
       security:
         - BearerAuth: [ ]
       parameters:
@@ -3121,7 +3121,7 @@ paths:
                   example: true
       responses:
         '200':
-          description: Возвращает ссылку на форму оплаты
+          description: Оплата инициирована
           content:
             application/json:
               schema:
@@ -3130,8 +3130,9 @@ paths:
                   - url
                 properties:
                   url:
+                    nullable: true
                     type: string
-                    description: Ссылка на форму оплаты
+                    description: Ссылка на форму оплаты или null, если оплата успешно проведена сохраненной картой
                     example: https://stage-merch.tochka.com/order/?uuid=9df0734a-5568-4670-8485-be5999cab8d2
         '400':
           $ref: '#/components/responses/BadRequestError'
