@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.22.2
+  version: 1.22.3
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -8563,6 +8563,10 @@ components:
           $ref: '#/components/schemas/CashChangeRaw'
         comment:
           $ref: '#/components/schemas/OrderComment'
+        ym_client_id:
+          type: string
+          description: ClientID пользователя Яндекс.Метрики
+          example: '16733430621037572539'
     PaymentConfirmRequest:
       type: object
       required:
