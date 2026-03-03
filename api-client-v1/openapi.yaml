@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.22.3
+  version: 1.22.4
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -687,6 +687,10 @@ paths:
                     type: string
                     description: Клиентский ID Яндекс ID
                     example: 2ec6547bfcfe4d3aaa28dd6cdcf32f17
+                  YANDEX_METRIKA_MEASURE_ON:
+                    type: boolean
+                    description: Включена серверная отправка данных электронной коммерции в счетчик Яндекс.Метрики
+                    example: true
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
         '423':
