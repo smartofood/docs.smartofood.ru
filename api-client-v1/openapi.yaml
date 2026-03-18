@@ -30,10 +30,10 @@ x-tagGroups:
       - Подсказки адресов
   - name: Гость
     tags:
+      - Местоположение
       - Регистрация
       - Авторизация
       - Профиль
-      - Местоположение
   - name: Сайт
     tags:
       - Места
@@ -4434,7 +4434,12 @@ components:
         shop_name:
           $ref: '#/components/schemas/ShopName'
         type:
-          $ref: '#/components/schemas/OrderType'
+          type: string
+          description: Тип локации
+          example: delivery
+          enum:
+            - delivery
+            - pickup
         city:
           $ref: '#/components/schemas/CityName'
         district:
@@ -8725,7 +8730,7 @@ components:
           $ref: '#/components/schemas/UserHash'
         type:
           type: string
-          description: Тип заказа
+          description: Тип локации
           example: delivery
           default: delivery
         city_id:
@@ -8765,7 +8770,7 @@ components:
           $ref: '#/components/schemas/UserHash'
         type:
           type: string
-          description: Тип заказа
+          description: Тип локации
           example: pickup
           default: pickup
         shop_id:
