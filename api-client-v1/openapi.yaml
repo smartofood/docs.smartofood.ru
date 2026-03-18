@@ -742,8 +742,6 @@ paths:
         - Подсказки адресов
       summary: Поиск улиц
       description: Возвращает список улиц (только для России)
-      security:
-        - BearerAuth: [ ]
       parameters:
         - $ref: '#/components/parameters/CityId'
         - $ref: '#/components/parameters/Query'
@@ -788,8 +786,6 @@ paths:
                           example: Пермская
         '400':
           $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
         '403':
@@ -810,8 +806,6 @@ paths:
         - Подсказки адресов
       summary: Поиск домов
       description: Возвращает список домов по улице (только для России)
-      security:
-        - BearerAuth: [ ]
       parameters:
         - $ref: '#/components/parameters/Query'
         - $ref: '#/components/parameters/StreetId'
@@ -855,8 +849,6 @@ paths:
                             д 2
         '400':
           $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
         '403':
@@ -878,8 +870,6 @@ paths:
       summary: Поиск мест
       description: Возвращает список мест (используется для поиска по миру, кроме
         России)
-      security:
-        - BearerAuth: [ ]
       parameters:
         - $ref: '#/components/parameters/CityId'
         - $ref: '#/components/parameters/Query'
@@ -931,8 +921,6 @@ paths:
                           example: Пермская, 2
         '400':
           $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
         '403':
@@ -954,8 +942,6 @@ paths:
       summary: Детализация места
       description: Возвращает детальную информацию о месте (используется для поиска
         по миру, кроме России)
-      security:
-        - BearerAuth: [ ]
       parameters:
         - $ref: '#/components/parameters/PlaceId'
         - $ref: '#/components/parameters/Session'
@@ -966,8 +952,6 @@ paths:
           $ref: '#/components/responses/GooglePlace'
         '400':
           $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
         '403':
