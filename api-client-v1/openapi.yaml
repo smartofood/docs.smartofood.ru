@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.22.4
+  version: 1.23.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -33,6 +33,7 @@ x-tagGroups:
       - Регистрация
       - Авторизация
       - Профиль
+      - Местоположение
   - name: Сайт
     tags:
       - Места
@@ -2722,6 +2723,74 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /location:
+    get:
+      tags:
+        - Местоположение
+      summary: Текущее местоположение
+      description: Возвращает текущее местоположение пользователя по user_hash
+      parameters:
+        - $ref: '#/components/parameters/UserHash'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Параметры местоположения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    put:
+      tags:
+        - Местоположение
+      summary: Текущее местоположение
+      description: Обновляет текущее местоположение пользователя
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/LocationDeliveryRequest'
+                - $ref: '#/components/schemas/LocationPickupRequest'
+      responses:
+        '200':
+          description: Параметры местоположения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /orders:
     post:
       tags:
@@ -4310,6 +4379,52 @@ components:
       type: string
       description: Отформатированный адрес
       example: Москва, Сухонская, 11
+    Location:
+      type: object
+      required:
+        - city_id
+        - shop_id
+        - type
+        - city
+        - street
+        - house
+      properties:
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
+        shop_name:
+          $ref: '#/components/schemas/ShopName'
+        type:
+          $ref: '#/components/schemas/OrderType'
+        city:
+          $ref: '#/components/schemas/CityName'
+        district:
+          $ref: '#/components/schemas/District'
+        street:
+          $ref: '#/components/schemas/Street'
+        house:
+          $ref: '#/components/schemas/House'
+        apartment:
+          $ref: '#/components/schemas/Apartment'
+        entrance:
+          $ref: '#/components/schemas/Entrance'
+        floor:
+          $ref: '#/components/schemas/Floor'
+        doorphone:
+          $ref: '#/components/schemas/Doorphone'
+        addr:
+          $ref: '#/components/schemas/Addr'
+        addr_lat:
+          $ref: '#/components/schemas/AddrLat'
+        addr_lon:
+          $ref: '#/components/schemas/AddrLon'
+        addr_street:
+          $ref: '#/components/schemas/AddrStreet'
+        kladr_id:
+          $ref: '#/components/schemas/KladrId'
+        place_id:
+          $ref: '#/components/schemas/PlaceId'
     AddrLat:
       type: number
       description: Широта адреса
@@ -8494,6 +8609,7 @@ components:
           type: string
           description: Тип заказа
           example: delivery
+          default: delivery
         on_time:
           $ref: '#/components/schemas/OrderOnTimeRaw'
         comment:
@@ -8536,10 +8652,70 @@ components:
           type: string
           description: Тип заказа
           example: pickup
+          default: pickup
         on_time:
           $ref: '#/components/schemas/OrderOnTimeRaw'
         comment:
           $ref: '#/components/schemas/OrderComment'
+    LocationDeliveryRequest:
+      type: object
+      required:
+        - user_hash
+        - type
+        - city_id
+        - city
+        - street
+        - house
+      properties:
+        user_hash:
+          $ref: '#/components/schemas/UserHash'
+        type:
+          type: string
+          description: Тип заказа
+          example: delivery
+          default: delivery
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        city:
+          $ref: '#/components/schemas/CityName'
+        district:
+          $ref: '#/components/schemas/District'
+        street:
+          $ref: '#/components/schemas/Street'
+        house:
+          $ref: '#/components/schemas/House'
+        apartment:
+          $ref: '#/components/schemas/Apartment'
+        entrance:
+          $ref: '#/components/schemas/Entrance'
+        floor:
+          $ref: '#/components/schemas/Floor'
+        doorphone:
+          $ref: '#/components/schemas/Doorphone'
+        addr:
+          $ref: '#/components/schemas/Addr'
+        addr_street:
+          $ref: '#/components/schemas/AddrStreet'
+        kladr_id:
+          $ref: '#/components/schemas/KladrId'
+        place_id:
+          $ref: '#/components/schemas/PlaceId'
+    LocationPickupRequest:
+      type: object
+      required:
+        - user_hash
+        - type
+        - shop_id
+      properties:
+        user_hash:
+          $ref: '#/components/schemas/UserHash'
+        type:
+          type: string
+          description: Тип заказа
+          example: pickup
+          default: pickup
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
     PaymentInitRequest:
       type: object
       required:
