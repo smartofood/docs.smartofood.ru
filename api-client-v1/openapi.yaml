@@ -169,6 +169,17 @@ paths:
                     type: string
                     description: Версия текущего бэкенда
                     example: 1.0.0
+                  SYSTEM_MAP_TYPE:
+                    type: string
+                    description: Тип используемой карты
+                    example: yandex
+                    enum:
+                      - yandex
+                      - google
+                  SYSTEM_MAP_KEY:
+                    type: string
+                    description: Ключ для карты
+                    example: 550e8400-e29b-41d4-a716-446655440000
                   SYSTEM_SMARTCAPTCHA_KEY:
                     type: string
                     description: Ключ клиента Yandex SmartCaptcha
