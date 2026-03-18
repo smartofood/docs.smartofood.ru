@@ -4861,6 +4861,10 @@ components:
       type: string
       description: Бесплатная доставка от суммы с валютой
       example: 1 500 ₽
+    FreeDeliveryLeft:
+      type: string
+      description: Необходимо добавить для бесплатной доставки с валютой
+      example: 738 ₽
     MinimumOrder:
       type: string
       description: Минимальная сумма заказа с валютой
@@ -7731,6 +7735,18 @@ components:
           $ref: '#/components/schemas/PaySum'
         pay_sum_raw:
           $ref: '#/components/schemas/PaySumRaw'
+        delivery_price_raw:
+          $ref: '#/components/schemas/DeliveryPriceRaw'
+        free_delivery_raw:
+          $ref: '#/components/schemas/FreeDeliveryRaw'
+        free_delivery_left_raw:
+          $ref: '#/components/schemas/FreeDeliveryLeftRaw'
+        delivery_price:
+          $ref: '#/components/schemas/DeliveryPrice'
+        free_delivery:
+          $ref: '#/components/schemas/FreeDelivery'
+        free_delivery_left:
+          $ref: '#/components/schemas/FreeDeliveryLeft'
         service_fee:
           $ref: '#/components/schemas/ServiceFee'
         service_fee_raw:
