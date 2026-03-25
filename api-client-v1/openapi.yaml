@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.23.0
+  version: 1.23.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -8183,6 +8183,12 @@ components:
           $ref: '#/components/schemas/IsCardAvailable'
         is_online_available:
           $ref: '#/components/schemas/IsOnlineAvailable'
+        online_payment_methods:
+          type: array
+          description: Список доступных методов онлайн-оплаты заказа. Необязательный,
+            появляется только когда is_online_available = true
+          items:
+            $ref: '#/components/schemas/OrderOnlinePaymentMethod'
         bank_name:
           $ref: '#/components/schemas/OrderBankName'
         products:
@@ -8524,6 +8530,31 @@ components:
         params:
           type: object
           description: Параметры виджета оплаты
+    OrderOnlinePaymentMethod:
+      type: object
+      required:
+        - code
+        - title
+        - kind
+      properties:
+        code:
+          type: string
+          description: Код метода онлайн-оплаты
+          example: card
+          enum:
+            - card
+            - sbp
+        title:
+          type: string
+          description: Название метода онлайн-оплаты
+          example: Онлайн-оплата на сайте
+        kind:
+          type: string
+          description: Тип отображения метода онлайн-оплаты
+          example: primary
+          enum:
+            - button
+            - primary
     OrderStatusInfo:
       type: object
       required:
