@@ -4614,6 +4614,15 @@ components:
       type: string
       description: Название мерчанта оплаты
       example: ЮKassa
+    OrderPaymentMethod:
+      type: string
+      description: Код метода онлайн-оплаты из online_payment_methods. Если не указан,
+        по умолчанию используется card
+      example: card
+      default: card
+      enum:
+        - card
+        - sbp
     LoyaltyCan:
       type: string
       description: Количество бонусов лояльности доступных для оплаты с валютой
@@ -8815,6 +8824,8 @@ components:
           $ref: '#/components/schemas/GuestName'
         payment_type:
           $ref: '#/components/schemas/PaymentType'
+        payment_method:
+          $ref: '#/components/schemas/OrderPaymentMethod'
         persons_count:
           $ref: '#/components/schemas/PersonsCount'
         card_id:
