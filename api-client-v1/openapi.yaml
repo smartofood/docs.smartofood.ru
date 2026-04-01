@@ -5807,8 +5807,6 @@ components:
         - place
         - empty_streets_allowed
         - manual_streets_prohibited
-        - callback_notification_on
-        - callback_notification_sms_on
         - order_on
         - order_can
         - is_open
@@ -5852,6 +5850,10 @@ components:
         callback_notification_on:
           type: boolean
           description: Оповещение об обратных звонках в телеграм
+          example: true
+        callback_notification_max_on:
+          type: boolean
+          description: Оповещение об обратных звонках в Макс
           example: true
         callback_notification_sms_on:
           type: boolean
