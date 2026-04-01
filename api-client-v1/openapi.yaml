@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.23.1
+  version: 1.23.2
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -467,6 +467,10 @@ paths:
                     type: string
                     description: Ссылка на Телеграм
                     example: https://t.me/durov_russia
+                  SITE_LINK_MAX:
+                    type: string
+                    description: Ссылка на Макс
+                    example: https://max.ru/durov_russia
                   SITE_LINK_TWITTER:
                     type: string
                     description: Ссылка на профиль в Твиттере
