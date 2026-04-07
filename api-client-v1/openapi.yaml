@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.23.2
+  version: 1.23.3
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -8415,6 +8415,7 @@ components:
         - pay_sum
         - sum_before_delivery
         - service_fee
+        - delivery_mins
         - is_can_delivery
         - is_default
       properties:
@@ -8444,6 +8445,8 @@ components:
           $ref: '#/components/schemas/SumBeforeDelivery'
         service_fee:
           $ref: '#/components/schemas/ServiceFee'
+        delivery_mins:
+          $ref: '#/components/schemas/DeliveryMins'
         is_can_delivery:
           $ref: '#/components/schemas/IsCanDelivery'
         is_out_of_zones:
