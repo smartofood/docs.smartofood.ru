@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.23.3
+  version: 1.24.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -132,6 +132,10 @@ paths:
                     type: string
                     description: Название связанного с сайтом телеграм-бота
                     example: smartofood_bot
+                  COMMON_MAX_BOT_NAME:
+                    type: string
+                    description: Название связанного с сайтом Max-бота
+                    example: smartofood_max_bot
                   SYSTEM_PAGE_CHANGE_EVENT:
                     type: integer
                     description: Таймстамп последнего изменения страниц
@@ -143,6 +147,10 @@ paths:
                   SYSTEM_TELEGRAM_BOT_LINKED:
                     type: boolean
                     description: С сайтом связан телеграм-бот
+                    example: true
+                  SYSTEM_MAX_BOT_LINKED:
+                    type: boolean
+                    description: С сайтом связан Max-бот
                     example: true
                   SYSTEM_WEBVIEW_REQUEST:
                     type: boolean
@@ -249,10 +257,12 @@ paths:
                         - phone
                         - telegram
                         - yandex
+                        - max
                     example:
                       - phone
                       - telegram
                       - yandex
+                      - max
                   SITE_AUTH_TYPE:
                     type: string
                     description: Авторизация по телефону
@@ -1222,6 +1232,51 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/max/session:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по сессии Max бота
+      description: Авторизует гостя по сессии переданной ботом Max
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - session_hash
+              properties:
+                session_hash:
+                  type: string
+                  description: MD5-хэш сессии
+                  example: e5440561a26066f4b18101ff563312de
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
