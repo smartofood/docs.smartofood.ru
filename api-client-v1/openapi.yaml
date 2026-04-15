@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.24.0
+  version: 1.24.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -4676,12 +4676,18 @@ components:
     OrderPaymentMethod:
       type: string
       description: Код метода онлайн-оплаты из online_payment_methods. Если не указан,
-        по умолчанию используется card
+        по умолчанию используется card, а если primary-эквайринг недоступен, выбирается
+        первый доступный метод из online_payment_methods
       example: card
       default: card
       enum:
         - card
         - sbp
+        - kaspi
+    OrderPaymentMethodName:
+      type: string
+      description: Название метода онлайн-оплаты
+      example: Kaspi Pay
     LoyaltyCan:
       type: string
       description: Количество бонусов лояльности доступных для оплаты с валютой
@@ -5465,7 +5471,7 @@ components:
       example: false
     IsOnlineAvailable:
       type: boolean
-      description: Онлайн-оплата доступна
+      description: Доступен хотя бы один метод онлайн-оплаты из online_payment_methods
       example: false
     QrOn:
       type: boolean
@@ -8150,6 +8156,8 @@ components:
           $ref: '#/components/schemas/PaymentUrl'
         payment_merchant:
           $ref: '#/components/schemas/PaymentMerchant'
+        payment_method:
+          $ref: '#/components/schemas/OrderPaymentMethod'
         loyalty_can:
           $ref: '#/components/schemas/LoyaltyCan'
         loyalty_bonus:
@@ -8219,6 +8227,8 @@ components:
           $ref: '#/components/schemas/PaymentStatusName'
         payment_merchant_name:
           $ref: '#/components/schemas/PaymentMerchantName'
+        payment_method_name:
+          $ref: '#/components/schemas/OrderPaymentMethodName'
         loyalty_can_raw:
           $ref: '#/components/schemas/LoyaltyCanRaw'
         loyalty_bonus_raw:
@@ -8255,8 +8265,9 @@ components:
           $ref: '#/components/schemas/IsOnlineAvailable'
         online_payment_methods:
           type: array
-          description: Список доступных методов онлайн-оплаты заказа. Необязательный,
-            появляется только когда is_online_available = true
+          description: Список доступных методов онлайн-оплаты заказа, включая основной
+            method card и дополнительные payment buttons. Необязательный, появляется
+            только когда is_online_available = true
           items:
             $ref: '#/components/schemas/OrderOnlinePaymentMethod'
         bank_name:
@@ -8587,6 +8598,7 @@ components:
       required:
         - id
         - type
+        - new_window
         - merchant
         - url
       properties:
@@ -8596,6 +8608,10 @@ components:
           example: 5b29a8ce-c9f4-5247-9efc-bd1cd86b8c68
         type:
           $ref: '#/components/schemas/OnlinePaymentType'
+        new_window:
+          type: boolean
+          description: Ссылку на оплату нужно открыть в новом окне
+          example: false
         merchant:
           $ref: '#/components/schemas/PaymentMerchant'
         url:
@@ -8617,6 +8633,7 @@ components:
           enum:
             - card
             - sbp
+            - kaspi
         title:
           type: string
           description: Название метода онлайн-оплаты
