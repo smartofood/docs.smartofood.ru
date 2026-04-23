@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.24.1
+  version: 1.25.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -1849,6 +1849,67 @@ paths:
                           type: array
                           items:
                             $ref: '#/components/schemas/Shop'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /places-with-cities:
+    get:
+      tags:
+        - Места
+      summary: Места самовывоза с детальной информацией о городах
+      description: Возвращает список активных городов с детальной информацией и доступными заведениями самовывоза
+      parameters:
+        - $ref: '#/components/parameters/ShopId'
+        - in: query
+          name: lat
+          description: Местонахождение гостя (широта)
+          required: false
+          schema:
+            type: number
+            example: 55.878315
+        - in: query
+          name: lon
+          description: Местонахождение гостя (долгота)
+          required: false
+          schema:
+            type: number
+            example: 37.65372
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Массив активных городов с заведениями самовывоза
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - cities
+                properties:
+                  cities:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/City'
+                        - type: object
+                          required:
+                            - shops
+                          properties:
+                            shops:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/Shop'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '402':
@@ -5955,6 +6016,16 @@ components:
           description: Основной идентификатор города (КЛАДР или внутренний). Используется
             для запроса домов без улицы
           example: '7700000100000'
+        center_lat:
+          type: number
+          nullable: true
+          description: Широта центра города
+          example: 55.755864
+        center_lon:
+          type: number
+          nullable: true
+          description: Долгота центра города
+          example: 37.617698
         is_open:
           $ref: '#/components/schemas/IsOpen'
         working_time:
