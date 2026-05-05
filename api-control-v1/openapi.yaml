@@ -1,0 +1,2503 @@
+openapi: 3.0.3
+info:
+  title: Smartofood Control API
+  description: API панели управления Smartofood для клиентов, приложений, конфигов, уведомлений, попапов и кошельков.
+  version: 1.0.0
+  contact:
+    url: https://smartofood.ru
+    email: support@smartofood.ru
+  license:
+    url: https://smartofood.ru/license.pdf
+    name: Публичная оферта
+  x-logo:
+    url: https://docs.smartofood.ru/images/logo.png
+    href: https://docs.smartofood.ru/api-control-v1/
+servers:
+  - url: https://api.smartofood.ru/v1
+    description: Production API
+security:
+  - BearerToken: []
+x-tagGroups:
+  - name: Общие
+    tags:
+      - Пинг API
+  - name: Control
+    tags:
+      - Клиенты
+      - Приложения
+      - Конфиги
+      - Настройки
+      - Платежи
+  - name: Уведомления
+    tags:
+      - Email
+      - Telegram
+      - Max
+      - Попапы
+  - name: Кошельки
+    tags:
+      - Кошельки
+paths:
+  /ping:
+    get:
+      tags:
+        - Пинг API
+      summary: Пинг API
+      description: Проверяет доступность API.
+      responses:
+        '200':
+          description: API доступен.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    description: Статус проверки доступности API.
+                    example: OK
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /clients:
+    get:
+      tags:
+        - Клиенты
+      summary: Список клиентов
+      description: Возвращает постраничный список клиентов.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Список клиентов.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - clients
+                properties:
+                  clients:
+                    type: array
+                    description: Список клиентов.
+                    items:
+                      $ref: '#/components/schemas/Client'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /clients/{client_id}:
+    get:
+      tags:
+        - Клиенты
+      summary: Клиент
+      description: Возвращает клиента по цифровому идентификатору.
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+      responses:
+        '200':
+          description: Данные клиента.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /clients/{client_id}/applications:
+    get:
+      tags:
+        - Клиенты
+      summary: Приложения клиента
+      description: Возвращает список приложений клиента.
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApplicationsList'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications:
+    get:
+      tags:
+        - Приложения
+      summary: Список приложений
+      description: Возвращает постраничный список приложений.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApplicationsList'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}:
+    get:
+      tags:
+        - Приложения
+      summary: Приложение
+      description: Возвращает приложение по цифровому идентификатору.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - name: include_client
+          in: query
+          description: Добавить в ответ объект клиента.
+          required: false
+          schema:
+            type: string
+            enum:
+              - 'true'
+              - 'false'
+          example: 'true'
+      responses:
+        '200':
+          description: Данные приложения.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Application'
+                  - type: object
+                    properties:
+                      Client:
+                        $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}/hash-key:
+    get:
+      tags:
+        - Приложения
+      summary: Ключ хеширования приложения
+      description: Возвращает ключ хеширования приложения по цифровому идентификатору. Метод доступен root-токенам.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: Ключ хеширования приложения.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - hash_key
+                properties:
+                  hash_key:
+                    type: string
+                    description: Ключ хеширования приложения.
+                    example: 7f6c7cc4af6d4e978f9b8c4d3a2f1e0c
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /configs/{domain}:
+    get:
+      tags:
+        - Конфиги
+      summary: Конфиг приложения по домену
+      description: Возвращает подготовленный PHP-конфиг приложения как JSON-объект.
+      parameters:
+        - name: domain
+          in: path
+          description: Домен приложения.
+          required: true
+          schema:
+            type: string
+          example: demo.smartofood.ru
+      responses:
+        '200':
+          description: Конфиг приложения.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /configs/background/{cloud_id}:
+    get:
+      tags:
+        - Конфиги
+      summary: Конфиг фоновых заданий
+      description: Возвращает подготовленный конфиг фоновых заданий для облака.
+      parameters:
+        - $ref: '#/components/parameters/CloudId'
+      responses:
+        '200':
+          description: Конфиг фоновых заданий.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /configs/migrations/{cloud_id}:
+    get:
+      tags:
+        - Конфиги
+      summary: Приложения для миграций
+      description: Возвращает список доменов и имен конфигов приложений, развернутых в облаке.
+      parameters:
+        - $ref: '#/components/parameters/CloudId'
+      responses:
+        '200':
+          description: Список приложений для миграций.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - domain
+                    - config
+                  properties:
+                    domain:
+                      type: string
+                      description: Основной домен приложения.
+                      example: demo.smartofood.ru
+                    config:
+                      type: string
+                      description: Имя PHP-файла конфига для домена.
+                      example: demo_smartofood_ru.php
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /settings:
+    get:
+      tags:
+        - Настройки
+      summary: Список настроек
+      description: Возвращает raw-значения настроек панели управления. Если передан search, возвращает настройки с указанным префиксом ключа.
+      parameters:
+        - name: search
+          in: query
+          description: Префикс ключей настроек для поиска.
+          required: false
+          schema:
+            type: string
+          example: COMMON_
+      responses:
+        '200':
+          description: Массив настроек.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  nullable: true
+                  type: string
+              example:
+                COMMON_ROWS_PER_PAGE: '50'
+                COMMON_MAX_ROWS_LIMIT: '1000'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Настройки
+      summary: Сохранение настройки
+      description: Сохраняет значение настройки панели управления. Метод доступен root-токенам.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - key
+                - value
+              properties:
+                key:
+                  type: string
+                  description: Ключ настройки.
+                  example: COMMON_ROWS_PER_PAGE
+                value:
+                  type: string
+                  description: Новое значение настройки.
+                  example: '100'
+      responses:
+        '200':
+          description: Raw-значение обновленной настройки.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  nullable: true
+                  type: string
+              example:
+                COMMON_ROWS_PER_PAGE: '100'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /payments:
+    post:
+      tags:
+        - Платежи
+      summary: Создание записи детализации платежей
+      description: Создает запись детализации платежей и меняет баланс клиента. Метод доступен admin- и root-токенам.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - client_id
+                - type
+                - account
+                - description
+                - sum
+              properties:
+                client_id:
+                  type: integer
+                  description: Цифровой идентификатор клиента.
+                  minimum: 1
+                  example: 1
+                type:
+                  type: string
+                  description: Тип записи.
+                  enum:
+                    - debit
+                    - credit
+                  example: credit
+                account:
+                  type: string
+                  description: Назначение записи.
+                  enum:
+                    - cashless
+                    - electronic
+                  example: electronic
+                description:
+                  type: string
+                  description: Описание записи.
+                  example: Корректировка баланса
+                sum:
+                  description: Сумма записи.
+                  $ref: '#/components/schemas/Money'
+      responses:
+        '200':
+          description: Запись создана.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    description: Статус создания записи.
+                    example: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /emails:
+    get:
+      tags:
+        - Email
+      summary: Список писем
+      description: Возвращает постраничный список отправленных или ожидающих отправки писем.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Список писем.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - emails
+                properties:
+                  emails:
+                    type: array
+                    description: Список email-сообщений.
+                    items:
+                      $ref: '#/components/schemas/Email'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Email
+      summary: Создание письма
+      description: Создает письмо и ставит его в очередь отправки. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCreateRequest'
+      responses:
+        '200':
+          description: Письмо создано.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - uuid
+                properties:
+                  uuid:
+                    $ref: '#/components/schemas/Uuid'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /emails/unsubscribes:
+    get:
+      tags:
+        - Email
+      summary: Отписавшиеся от email
+      description: Возвращает постраничный список email-отписок.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Список отписок.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - unsubscribes
+                properties:
+                  unsubscribes:
+                    type: array
+                    description: Список email-отписок.
+                    items:
+                      $ref: '#/components/schemas/Unsubscribe'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /emails/{email_uuid}:
+    get:
+      tags:
+        - Email
+      summary: Письмо
+      description: Возвращает письмо по UUID.
+      parameters:
+        - $ref: '#/components/parameters/EmailUuid'
+      responses:
+        '200':
+          description: Данные письма.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Email'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /emails/{email_uuid}/events:
+    get:
+      tags:
+        - Email
+      summary: События письма
+      description: Возвращает постраничный список событий письма.
+      parameters:
+        - $ref: '#/components/parameters/EmailUuid'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: События письма.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - events
+                properties:
+                  events:
+                    type: array
+                    description: Список событий письма.
+                    items:
+                      $ref: '#/components/schemas/EmailEvent'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /telegrams:
+    get:
+      tags:
+        - Telegram
+      summary: Список Telegram-сообщений
+      description: Возвращает постраничный список Telegram-сообщений.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Список Telegram-сообщений.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - telegrams
+                properties:
+                  telegrams:
+                    type: array
+                    description: Список Telegram-сообщений.
+                    items:
+                      $ref: '#/components/schemas/TelegramMessage'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Telegram
+      summary: Создание Telegram-сообщения
+      description: Создает Telegram-сообщение и ставит его в очередь отправки. Поддерживает идемпотентность через заголовок
+        `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelegramCreateRequest'
+      responses:
+        '200':
+          description: Сообщение создано.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - uuid
+                properties:
+                  uuid:
+                    $ref: '#/components/schemas/Uuid'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /telegrams/stops:
+    get:
+      tags:
+        - Telegram
+      summary: Стоп-лист Telegram
+      description: Возвращает постраничный список чатов, остановивших отправку Telegram-сообщений.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/StopsList'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /telegrams/{telegram_uuid}:
+    get:
+      tags:
+        - Telegram
+      summary: Telegram-сообщение
+      description: Возвращает Telegram-сообщение по UUID.
+      parameters:
+        - $ref: '#/components/parameters/TelegramUuid'
+      responses:
+        '200':
+          description: Данные Telegram-сообщения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelegramMessage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /telegrams/{telegram_uuid}/events:
+    get:
+      tags:
+        - Telegram
+      summary: События Telegram-сообщения
+      description: Возвращает постраничный список событий Telegram-сообщения.
+      parameters:
+        - $ref: '#/components/parameters/TelegramUuid'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: События Telegram-сообщения.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - events
+                properties:
+                  events:
+                    type: array
+                    description: Список событий Telegram-сообщения.
+                    items:
+                      $ref: '#/components/schemas/TelegramEvent'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /max:
+    get:
+      tags:
+        - Max
+      summary: Список Max-сообщений
+      description: Возвращает постраничный список Max-сообщений.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Список Max-сообщений.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - messages
+                properties:
+                  messages:
+                    type: array
+                    description: Список Max-сообщений.
+                    items:
+                      $ref: '#/components/schemas/MaxMessage'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Max
+      summary: Создание Max-сообщения
+      description: Создает Max-сообщение и ставит его в очередь отправки. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaxCreateRequest'
+      responses:
+        '200':
+          description: Сообщение создано.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - uuid
+                properties:
+                  uuid:
+                    $ref: '#/components/schemas/Uuid'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /max/stops:
+    get:
+      tags:
+        - Max
+      summary: Стоп-лист Max
+      description: Возвращает постраничный список чатов, остановивших отправку Max-сообщений.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/StopsList'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /max/{max_message_uuid}:
+    get:
+      tags:
+        - Max
+      summary: Max-сообщение
+      description: Возвращает Max-сообщение по UUID.
+      parameters:
+        - $ref: '#/components/parameters/MaxMessageUuid'
+      responses:
+        '200':
+          description: Данные Max-сообщения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaxMessage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /max/{max_message_uuid}/events:
+    get:
+      tags:
+        - Max
+      summary: События Max-сообщения
+      description: Возвращает постраничный список событий Max-сообщения.
+      parameters:
+        - $ref: '#/components/parameters/MaxMessageUuid'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: События Max-сообщения.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - events
+                properties:
+                  events:
+                    type: array
+                    description: Список событий Max-сообщения.
+                    items:
+                      $ref: '#/components/schemas/MaxEvent'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /popups/unseen:
+    get:
+      tags:
+        - Попапы
+      summary: Непросмотренный попап
+      description: Возвращает последний активный непросмотренный попап для email и отмечает его просмотренным.
+      parameters:
+        - name: app_id
+          in: query
+          description: Цифровой идентификатор приложения. Передается SDK для привязки пользовательского контекста, текущая серверная
+            реализация не использует его в фильтрации.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 1164
+        - name: email
+          in: query
+          description: Email пользователя панели.
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@example.com
+      responses:
+        '200':
+          description: Непросмотренный попап или null.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - unseen
+                properties:
+                  unseen:
+                    description: Непросмотренный попап или null, если активного попапа нет.
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/Popup'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /popups/{popup_id}:click:
+    post:
+      tags:
+        - Попапы
+      summary: Клик по попапу
+      description: Отмечает переход по кнопке активного попапа.
+      parameters:
+        - name: popup_id
+          in: path
+          description: Цифровой идентификатор попапа.
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  description: Email пользователя панели, для которого отмечается клик.
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Клик отмечен. Тело ответа пустое.
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wallets/invite:
+    post:
+      tags:
+        - Кошельки
+      summary: Приглашение кошелька
+      description: Отправляет приглашение на регистрацию кошелька. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  $ref: '#/components/schemas/RussianPhone'
+      responses:
+        '200':
+          description: Приглашение отправлено.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guid
+                properties:
+                  guid:
+                    $ref: '#/components/schemas/Uuid'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wallets/status:
+    get:
+      tags:
+        - Кошельки
+      summary: Статус кошелька
+      description: Возвращает статус кошелька по телефону.
+      parameters:
+        - name: phone
+          in: query
+          description: Телефон в формате 79XXXXXXXXX.
+          required: true
+          schema:
+            $ref: '#/components/schemas/RussianPhone'
+      responses:
+        '200':
+          description: Статус кошелька.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/WalletStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wallets/search:
+    post:
+      tags:
+        - Кошельки
+      summary: Поиск кошельков
+      description: Возвращает статусы кошельков по массиву телефонов.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phones
+              properties:
+                phones:
+                  type: array
+                  description: Список телефонов для поиска кошельков.
+                  items:
+                    $ref: '#/components/schemas/RussianPhone'
+                  example:
+                    - '79000000000'
+                    - '79000000001'
+      responses:
+        '200':
+          description: Найденные кошельки.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - wallets
+                properties:
+                  wallets:
+                    type: array
+                    description: Найденные кошельки.
+                    items:
+                      $ref: '#/components/schemas/WalletStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wallets/orders/{order_guid}:
+    get:
+      tags:
+        - Кошельки
+      summary: Заказ выплаты
+      description: Возвращает заказ выплаты по GUID.
+      parameters:
+        - name: order_guid
+          in: path
+          description: GUID заказа.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Uuid'
+      responses:
+        '200':
+          description: Заказ выплаты.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletOrder'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wallets/orders:
+    post:
+      tags:
+        - Кошельки
+      summary: Создание заказа выплаты
+      description: Создает заказ выплаты кошелька. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletOrderCreateRequest'
+      responses:
+        '200':
+          description: Заказ создан.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guid
+                properties:
+                  guid:
+                    $ref: '#/components/schemas/Uuid'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: API token
+      description: 'Токен передается в заголовке `Authorization: Bearer <token>`.'
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Номер страницы.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+    Limit:
+      name: limit
+      in: query
+      description: Количество записей на странице.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+      example: 50
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: Ключ идемпотентности для повторной отправки POST-запроса.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: e2c4fcfa-87f2-43c0-bbfb-acf1fdf37e45
+    ClientId:
+      name: client_id
+      in: path
+      description: Цифровой идентификатор клиента.
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    AppId:
+      name: app_id
+      in: path
+      description: Цифровой идентификатор приложения.
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+      example: 1406
+    CloudId:
+      name: cloud_id
+      in: path
+      description: Цифровой идентификатор облака.
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    EmailUuid:
+      name: email_uuid
+      in: path
+      description: UUID письма.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    TelegramUuid:
+      name: telegram_uuid
+      in: path
+      description: UUID Telegram-сообщения.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    MaxMessageUuid:
+      name: max_message_uuid
+      in: path
+      description: UUID Max-сообщения.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+  responses:
+    ApplicationsList:
+      description: Список приложений.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - applications
+            properties:
+              applications:
+                type: array
+                description: Список приложений.
+                items:
+                  $ref: '#/components/schemas/Application'
+              next:
+                $ref: '#/components/schemas/NextPage'
+    StopsList:
+      description: Стоп-лист.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - stops
+            properties:
+              stops:
+                type: array
+                description: Список записей стоп-листа.
+                items:
+                  $ref: '#/components/schemas/Stop'
+              next:
+                $ref: '#/components/schemas/NextPage'
+    BadRequestError:
+      description: Неправильный запрос.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedError:
+      description: Пользователь не авторизован или токен не передан.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenError:
+      description: Доступ запрещен.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundError:
+      description: Метод или объект не найден.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Внутренняя ошибка сервера.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Текст ошибки.
+          example: Описание ошибки
+        code:
+          type: integer
+          description: HTTP-код ошибки.
+          example: 400
+    Uuid:
+      type: string
+      format: uuid
+      description: UUID в стандартном строковом формате.
+      example: 0ecfc650-9ad6-4c71-a196-7ca79ca1324d
+    NextPage:
+      type: integer
+      description: Номер следующей страницы, если есть продолжение списка.
+      minimum: 2
+      example: 2
+    IsoDateTime:
+      type: string
+      description: Дата и время в формате ISO 8601 UTC.
+      example: '2026-05-05T09:00:00+00:00'
+    ShortDate:
+      type: string
+      description: Дата в коротком формате.
+      example: '2026-05-05'
+    Money:
+      type: string
+      description: Денежное значение в виде строки с двумя знаками после запятой.
+      pattern: ^\d+(\.\d{1,2})?$
+      example: '100.00'
+    RussianPhone:
+      type: string
+      description: Российский номер телефона без плюса, в формате 79XXXXXXXXX.
+      pattern: ^79\d{9}$
+      example: '79000000000'
+    Tags:
+      type: array
+      description: Уникальные slug-метки.
+      items:
+        type: string
+        pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+      example:
+        - postman
+        - test
+    Button:
+      type: object
+      required:
+        - url
+        - label
+      properties:
+        url:
+          type: string
+          description: URL кнопки.
+          format: uri
+          example: https://smartofood.ru
+        label:
+          type: string
+          description: Текст кнопки.
+          minLength: 2
+          example: Открыть
+    Client:
+      type: object
+      required:
+        - id
+        - guid
+        - dealer_id
+        - registred
+        - electronic
+        - cashless
+        - name
+        - email
+        - phone
+        - timezone
+        - inn
+        - kpp
+        - is_individual
+        - is_foreign
+        - is_active
+        - is_negative_balance
+        - available_balance
+        - total_balance
+      properties:
+        id:
+          type: string
+          description: Цифровой идентификатор клиента, отформатированный строкой.
+          example: '1'
+        guid:
+          description: GUID клиента.
+          $ref: '#/components/schemas/Uuid'
+        dealer_id:
+          type: string
+          description: Цифровой идентификатор дилера, отформатированный строкой.
+          example: '1'
+        registred:
+          description: Дата регистрации клиента.
+          $ref: '#/components/schemas/IsoDateTime'
+        electronic:
+          type: string
+          description: Баланс электронного лицевого счета.
+          example: '0.00'
+        cashless:
+          type: string
+          description: Баланс безналичного лицевого счета.
+          example: '0.00'
+        name:
+          type: string
+          description: Отображаемое имя клиента.
+          example: Smartofood Demo
+        email:
+          type: string
+          description: Контактный email клиента.
+          format: email
+          example: client@example.com
+        phone:
+          type: string
+          description: Контактный телефон клиента.
+          example: +7 922 046-55-00
+        timezone:
+          type: string
+          description: Часовой пояс клиента.
+          example: Europe/Moscow
+        inn:
+          type: string
+          description: ИНН клиента.
+          example: '5900000000'
+        kpp:
+          type: string
+          description: КПП клиента.
+          example: '590001001'
+        is_individual:
+          type: boolean
+          description: Клиент является индивидуальным предпринимателем или физлицом.
+          example: false
+        is_foreign:
+          type: boolean
+          description: Клиент является иностранным.
+          example: false
+        is_active:
+          type: boolean
+          description: Клиент активен.
+          example: true
+        is_negative_balance:
+          type: boolean
+          description: У клиента отрицательный общий баланс.
+          example: false
+        available_balance:
+          type: string
+          description: Доступный баланс клиента.
+          example: '100.00'
+        total_balance:
+          type: string
+          description: Общий баланс клиента.
+          example: '100.00'
+    Application:
+      type: object
+      required:
+        - id
+        - client_id
+        - language
+        - region
+        - created
+        - status
+        - pay_status
+        - domain_status
+        - domain
+        - pay_type
+        - pay_method
+        - plan
+        - is_service_fee
+        - is_revenue_based
+        - is_service_plan
+        - is_trial_period
+      properties:
+        id:
+          type: string
+          description: Цифровой идентификатор приложения, отформатированный строкой.
+          example: '1406'
+        client_id:
+          type: string
+          description: Цифровой идентификатор клиента, отформатированный строкой.
+          example: '1'
+        dealer_id:
+          type: string
+          description: Цифровой идентификатор дилера, отформатированный строкой.
+          example: '1'
+        agent_id:
+          type: string
+          description: Цифровой идентификатор агента, отформатированный строкой.
+          example: '1'
+        manager_id:
+          type: string
+          description: Цифровой идентификатор менеджера, отформатированный строкой.
+          example: '1'
+        language:
+          type: string
+          description: Язык приложения.
+          example: ru
+        region:
+          type: string
+          description: Регион приложения.
+          example: RU
+        created:
+          type: string
+          description: Дата создания приложения.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        status:
+          type: string
+          description: Статус приложения.
+          example: started
+          enum:
+            - ''
+            - error
+            - deploy
+            - rollback
+            - started
+            - stopped
+            - deleted
+            - service
+        pay_status:
+          type: string
+          description: Статус оплаты приложения.
+          example: paid
+          enum:
+            - waiting
+            - paid
+            - overdue
+        domain_status:
+          type: string
+          description: Статус домена приложения.
+          example: delegated
+          enum:
+            - none
+            - external
+            - waiting
+            - delegated
+            - error
+            - certificate_issue
+            - certificate_issue_error
+        domain:
+          type: string
+          description: Технический домен приложения.
+          example: demo.smartofood.ru
+        client_domain:
+          type: string
+          description: Клиентский домен приложения.
+          example: demo.example.com
+        pay_type:
+          type: string
+          description: Тип оплаты приложения.
+          example: smartofood
+          enum:
+            - iiko
+            - smartofood
+        pay_method:
+          type: string
+          description: Способ оплаты приложения.
+          example: card
+          enum:
+            - card
+            - invoice
+        paid_until:
+          type: string
+          description: Дата окончания оплаченного периода.
+          nullable: true
+          example: '2026-05-05'
+        ssl_until:
+          type: string
+          description: Дата окончания SSL-сертификата.
+          nullable: true
+          example: '2026-12-31'
+        activation_date:
+          type: string
+          description: Дата активации приложения.
+          nullable: true
+          example: '2026-05-05'
+        stop_date:
+          type: string
+          description: Дата остановки приложения.
+          nullable: true
+          example: '2026-05-05'
+        plan:
+          type: string
+          description: Тарифный план приложения.
+          example: standard
+        cost_per_month:
+          description: Стоимость приложения в месяц.
+          $ref: '#/components/schemas/Money'
+        percent_per_order:
+          type: string
+          description: Процент комиссии с заказа.
+          example: '3.00'
+        is_service_fee:
+          type: boolean
+          description: Включен сервисный сбор.
+          example: false
+        is_revenue_based:
+          type: boolean
+          description: Приложение использует revenue-based тарификацию.
+          example: false
+        is_service_plan:
+          type: boolean
+          description: Приложение использует сервисный тариф.
+          example: false
+        is_trial_period:
+          type: boolean
+          description: Приложение находится на пробном периоде.
+          example: false
+        plan_limits:
+          type: object
+          description: Лимиты и возможности тарифного плана.
+          required:
+            - api
+            - cities_limit
+            - copyright
+            - delivery
+            - domain
+            - files_limit
+            - loyalty
+            - orders_limit
+            - pickup
+            - pos
+            - promocodes
+            - qr
+            - shops_limit
+            - site
+            - table
+            - tables_limit
+            - zones
+          properties:
+            api:
+              type: boolean
+              description: Доступ к API включен.
+              example: true
+            cities_limit:
+              type: integer
+              description: Лимит количества городов.
+              example: 1
+            copyright:
+              type: boolean
+              description: Можно скрывать копирайт Smartofood.
+              example: true
+            delivery:
+              type: boolean
+              description: Доставка доступна.
+              example: true
+            domain:
+              type: boolean
+              description: Подключение домена доступно.
+              example: true
+            files_limit:
+              type: integer
+              description: Лимит файлов.
+              example: 1000
+            loyalty:
+              type: boolean
+              description: Лояльность доступна.
+              example: true
+            orders_limit:
+              type: integer
+              description: Лимит заказов.
+              example: 1000
+            pickup:
+              type: boolean
+              description: Самовывоз доступен.
+              example: true
+            pos:
+              type: boolean
+              description: Интеграция с POS доступна.
+              example: true
+            promocodes:
+              type: boolean
+              description: Промокоды доступны.
+              example: true
+            qr:
+              type: boolean
+              description: QR-меню доступно.
+              example: true
+            shops_limit:
+              type: integer
+              description: Лимит торговых точек.
+              example: 1
+            site:
+              type: boolean
+              description: Сайт доступен.
+              example: true
+            table:
+              type: boolean
+              description: Заказы за столиком доступны.
+              example: true
+            tables_limit:
+              type: integer
+              description: Лимит столиков.
+              example: 10
+            zones:
+              type: boolean
+              description: Зоны доставки доступны.
+              example: true
+        service_fee:
+          type: array
+          description: Настройки сервисного сбора или null, если сбор не задан.
+          nullable: true
+          items:
+            type: object
+            additionalProperties: true
+    Email:
+      type: object
+      required:
+        - uuid
+        - status
+        - created
+        - tags
+        - from_name
+        - from_email
+        - email
+        - subject
+      properties:
+        uuid:
+          description: UUID письма.
+          $ref: '#/components/schemas/Uuid'
+        status:
+          type: string
+          description: Статус письма.
+          example: waiting
+          enum:
+            - waiting
+            - sended
+            - delivered
+            - failed
+        created:
+          type: string
+          description: Дата создания письма.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        sended:
+          type: string
+          description: Дата отправки письма.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        delivered:
+          type: string
+          description: Дата доставки письма.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        tags:
+          description: Метки письма.
+          $ref: '#/components/schemas/Tags'
+        from_name:
+          type: string
+          description: Имя отправителя.
+          example: Smartofood
+        from_email:
+          type: string
+          description: Email отправителя.
+          format: email
+          example: no-reply@smartofood.ru
+        email:
+          type: string
+          description: Email получателя.
+          format: email
+          example: user@example.com
+        subject:
+          type: string
+          description: Тема письма.
+          example: Тестовое письмо
+    EmailCreateRequest:
+      type: object
+      required:
+        - from_name
+        - from_email
+        - email
+        - subject
+        - message
+      properties:
+        from_name:
+          type: string
+          description: Имя отправителя.
+          minLength: 1
+          example: Smartofood
+        from_email:
+          type: string
+          description: Email отправителя.
+          format: email
+          example: no-reply@smartofood.ru
+        email:
+          type: string
+          description: Email получателя.
+          format: email
+          example: user@example.com
+        subject:
+          type: string
+          description: Тема письма.
+          minLength: 1
+          example: Тестовое письмо
+        message:
+          type: string
+          minLength: 1
+          description: HTML-тело письма. Если плейсхолдер `{{UnsubscribeUrl}}` не передан, ссылка отписки добавляется автоматически.
+          example: Тело письма
+        tags:
+          description: Метки письма.
+          $ref: '#/components/schemas/Tags'
+    EmailEvent:
+      type: object
+      required:
+        - email_uuid
+        - date
+        - email
+        - type
+        - details
+      properties:
+        email_uuid:
+          description: UUID письма.
+          $ref: '#/components/schemas/Uuid'
+        date:
+          type: string
+          description: Дата события.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        email:
+          type: string
+          description: Email, связанный с событием.
+          format: email
+          example: user@example.com
+        type:
+          type: string
+          description: Тип события письма.
+          example: delivery
+          enum:
+            - fail
+            - send
+            - delivery
+            - read
+            - click
+            - unsubscribe
+        details:
+          type: object
+          description: Детали события.
+          additionalProperties: true
+    Unsubscribe:
+      type: object
+      required:
+        - date
+        - email
+        - reason
+        - comment
+      properties:
+        date:
+          description: Дата отписки.
+          $ref: '#/components/schemas/IsoDateTime'
+        email:
+          type: string
+          description: Email отписавшегося получателя.
+          format: email
+          example: user@example.com
+        reason:
+          type: string
+          description: Причина отписки.
+          nullable: true
+          example: unsub
+          enum:
+            - manual
+            - unsub
+            - topic
+            - listunsub
+            - fbl
+            - stopped
+        comment:
+          type: string
+          description: Комментарий к отписке.
+          nullable: true
+          example: Отписка пользователя
+    TelegramMessage:
+      type: object
+      required:
+        - uuid
+        - status
+        - created
+        - tags
+        - bot_id
+        - bot_name
+        - bot_username
+        - bot_token
+        - chat_id
+        - chat_type
+        - preview
+        - button
+      properties:
+        uuid:
+          description: UUID Telegram-сообщения.
+          $ref: '#/components/schemas/Uuid'
+        status:
+          type: string
+          description: Статус Telegram-сообщения.
+          example: waiting
+          enum:
+            - waiting
+            - sended
+            - failed
+        created:
+          type: string
+          description: Дата создания сообщения.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        sended:
+          type: string
+          description: Дата отправки сообщения.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        tags:
+          description: Метки сообщения.
+          $ref: '#/components/schemas/Tags'
+        bot_id:
+          type: string
+          description: Идентификатор Telegram-бота.
+          example: '123456789'
+        bot_name:
+          type: string
+          description: Имя Telegram-бота.
+          nullable: true
+          example: Smartofood Bot
+        bot_username:
+          type: string
+          description: Username Telegram-бота.
+          nullable: true
+          example: smartofood_bot
+        bot_token:
+          type: string
+          description: Токен бота, сохраненный для сообщения.
+          example: 123456789:example-token
+        chat_id:
+          type: string
+          description: Идентификатор Telegram-чата.
+          example: '123456789'
+        chat_name:
+          type: string
+          description: Имя Telegram-чата или пользователя.
+          nullable: true
+          example: Дмитрий
+        chat_username:
+          type: string
+          description: Username Telegram-чата или пользователя.
+          nullable: true
+          example: idmitrio
+        chat_type:
+          type: string
+          description: Тип Telegram-чата.
+          example: private
+        parse_mode:
+          type: string
+          description: Режим форматирования сообщения.
+          nullable: true
+          enum:
+            - HTML
+            - MarkdownV2
+          example: HTML
+        preview:
+          type: string
+          description: Текстовый предпросмотр сообщения.
+          example: Сообщение
+        button:
+          description: Кнопка сообщения или пустой массив, если кнопки нет.
+          oneOf:
+            - $ref: '#/components/schemas/Button'
+            - type: array
+              maxItems: 0
+        message_id:
+          type: string
+          description: Идентификатор сообщения в Telegram.
+          nullable: true
+          example: '123'
+    TelegramCreateRequest:
+      type: object
+      required:
+        - bot_token
+        - chat_id
+        - message
+      properties:
+        bot_token:
+          type: string
+          description: Токен Telegram-бота.
+          pattern: ^\d+\:.+$
+          example: 123456789:example-token
+        chat_id:
+          type: integer
+          description: Идентификатор Telegram-чата.
+          example: 123456789
+        parse_mode:
+          type: string
+          description: Режим форматирования сообщения.
+          enum:
+            - HTML
+            - MarkdownV2
+          example: HTML
+        message:
+          type: string
+          description: Текст Telegram-сообщения.
+          minLength: 1
+          maxLength: 4096
+          example: Просто так, да не так
+        button:
+          description: Кнопка сообщения.
+          $ref: '#/components/schemas/Button'
+        tags:
+          description: Метки сообщения.
+          $ref: '#/components/schemas/Tags'
+    MaxMessage:
+      type: object
+      required:
+        - uuid
+        - status
+        - created
+        - tags
+        - bot_id
+        - bot_name
+        - bot_username
+        - bot_token
+        - chat_id
+        - chat_type
+        - format
+        - preview
+        - button
+      properties:
+        uuid:
+          description: UUID Max-сообщения.
+          $ref: '#/components/schemas/Uuid'
+        status:
+          type: string
+          description: Статус Max-сообщения.
+          example: waiting
+          enum:
+            - waiting
+            - sended
+            - failed
+        created:
+          type: string
+          description: Дата создания сообщения.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        sended:
+          type: string
+          description: Дата отправки сообщения.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        tags:
+          description: Метки сообщения.
+          $ref: '#/components/schemas/Tags'
+        bot_id:
+          type: string
+          description: Идентификатор Max-бота.
+          example: '100001'
+        bot_name:
+          type: string
+          description: Имя Max-бота.
+          nullable: true
+          example: Smartofood Max
+        bot_username:
+          type: string
+          description: Username Max-бота.
+          nullable: true
+          example: smartofood_max
+        bot_token:
+          type: string
+          description: Токен бота, сохраненный для сообщения.
+          example: max-bot-token
+        chat_id:
+          type: string
+          description: Идентификатор Max-чата.
+          example: '-1000000000001'
+        chat_title:
+          type: string
+          description: Название Max-чата.
+          nullable: true
+          example: Smartofood Chat
+        chat_type:
+          type: string
+          description: Тип Max-чата.
+          example: chat
+        format:
+          type: string
+          description: Формат текста сообщения.
+          nullable: true
+          enum:
+            - html
+            - markdown
+          example: html
+        preview:
+          type: string
+          description: Текстовый предпросмотр сообщения.
+          example: Групповое сообщение
+        button:
+          description: Кнопка сообщения или пустой массив, если кнопки нет.
+          oneOf:
+            - $ref: '#/components/schemas/Button'
+            - type: array
+              maxItems: 0
+        message_id:
+          type: string
+          description: Идентификатор сообщения в Max.
+          nullable: true
+          example: mid.123
+    MaxCreateRequest:
+      type: object
+      required:
+        - bot_token
+        - chat_id
+        - message
+      properties:
+        bot_token:
+          type: string
+          description: Токен Max-бота.
+          example: max-bot-token
+        chat_id:
+          type: integer
+          description: Идентификатор Max-чата.
+          example: -1000000000001
+        format:
+          type: string
+          description: Формат текста сообщения.
+          enum:
+            - html
+            - markdown
+          example: html
+        message:
+          type: string
+          description: Текст Max-сообщения.
+          minLength: 1
+          maxLength: 4000
+          example: Групповое сообщение
+        button:
+          description: Кнопка сообщения.
+          $ref: '#/components/schemas/Button'
+        tags:
+          description: Метки сообщения.
+          $ref: '#/components/schemas/Tags'
+    Stop:
+      type: object
+      required:
+        - date
+        - chat_id
+        - reason
+      properties:
+        date:
+          type: string
+          description: Дата добавления в стоп-лист.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        chat_id:
+          type: string
+          description: Идентификатор чата.
+          example: '123456789'
+        reason:
+          type: string
+          description: Причина попадания в стоп-лист.
+          nullable: true
+          example: chat_not_found
+          enum:
+            - manual
+            - chat_not_found
+            - user_is_deactivated
+            - group_chat_was_migrated
+            - forbidden
+            - chat_inactive
+    Popup:
+      type: object
+      required:
+        - id
+        - title
+        - message
+        - button
+      properties:
+        id:
+          type: integer
+          description: Цифровой идентификатор попапа.
+          example: 3
+        title:
+          type: string
+          description: Заголовок попапа.
+          example: Новая возможность
+        message:
+          type: string
+          description: Текст попапа.
+          example: Подключите новую функцию в панели управления.
+        button:
+          description: Кнопка попапа или null, если кнопка не задана.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Button'
+    WalletStatus:
+      type: object
+      required:
+        - guid
+        - phone
+        - full_name
+        - status
+      properties:
+        guid:
+          description: GUID кошелька.
+          $ref: '#/components/schemas/Uuid'
+        phone:
+          description: Телефон владельца кошелька.
+          $ref: '#/components/schemas/RussianPhone'
+        full_name:
+          type: string
+          description: Полное имя владельца кошелька.
+          example: Дмитрий Иванов
+        status:
+          type: string
+          description: Статус кошелька.
+          enum:
+            - invited
+            - confirmed
+            - approved
+            - suspended
+          example: approved
+    WalletOrder:
+      type: object
+      required:
+        - id
+        - guid
+        - ext_id
+        - client_id
+        - app_id
+        - b2p_id
+        - b2p_sector
+        - guest_phone
+        - guest_name
+        - card_number
+        - pay_type
+        - order_state
+        - commission
+        - related_sum
+        - amount
+        - fee
+        - cost
+        - reimbursement
+        - purpose
+        - domain
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Цифровой идентификатор заказа выплаты, отформатированный строкой.
+          example: '15'
+        guid:
+          description: GUID заказа выплаты.
+          $ref: '#/components/schemas/Uuid'
+        ext_id:
+          type: string
+          description: Внешний идентификатор заказа.
+          example: '15'
+        client_id:
+          type: string
+          description: Цифровой идентификатор клиента, отформатированный строкой.
+          example: '1'
+        app_id:
+          type: string
+          description: Цифровой идентификатор приложения, отформатированный строкой.
+          example: '1164'
+        b2p_id:
+          type: string
+          description: Идентификатор операции Best2Pay, отформатированный строкой.
+          example: '11210728'
+        b2p_sector:
+          type: integer
+          description: Сектор Best2Pay.
+          example: 1001
+        guest_phone:
+          description: Телефон гостя.
+          $ref: '#/components/schemas/RussianPhone'
+        guest_name:
+          type: string
+          description: Имя гостя.
+          example: Дмитрий
+        card_number:
+          type: string
+          description: Маскированный номер карты.
+          nullable: true
+          example: 411111******1111
+        pay_type:
+          type: string
+          description: Тип оплаты заказа.
+          enum:
+            - CARD_URL
+            - CARD_TOKEN
+            - SBP_QR
+            - SBP_TOKEN
+          example: CARD_URL
+        order_state:
+          type: string
+          description: Состояние заказа в платежной системе.
+          example: COMPLETED
+        commission:
+          description: Комиссия заказа.
+          $ref: '#/components/schemas/Money'
+        related_sum:
+          description: Сумма связанного заказа.
+          $ref: '#/components/schemas/Money'
+        amount:
+          description: Сумма выплаты.
+          $ref: '#/components/schemas/Money'
+        fee:
+          description: Комиссия платежной системы.
+          $ref: '#/components/schemas/Money'
+        cost:
+          description: Стоимость обработки выплаты.
+          $ref: '#/components/schemas/Money'
+        reimbursement:
+          type: boolean
+          description: Признак компенсационной выплаты.
+          example: true
+        purpose:
+          type: string
+          description: Назначение платежа.
+          nullable: true
+          example: За заказ
+        domain:
+          type: string
+          description: Домен приложения заказа.
+          nullable: true
+          example: demo.smartofood.ru
+        created_at:
+          type: string
+          description: Дата создания заказа выплаты.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+    WalletOrderCreateRequest:
+      type: object
+      required:
+        - app_id
+        - ext_id
+        - guest_phone
+        - guest_name
+        - b2p_id
+        - commission
+        - pay_type
+        - related_sum
+        - wallets
+      properties:
+        app_id:
+          type: integer
+          description: Цифровой идентификатор приложения.
+          minimum: 1
+          example: 1164
+        ext_id:
+          type: integer
+          description: Внешний идентификатор заказа.
+          minimum: 1
+          example: 15
+        guest_phone:
+          description: Телефон гостя.
+          $ref: '#/components/schemas/RussianPhone'
+        guest_name:
+          type: string
+          description: Имя гостя.
+          example: Дмитрий
+        b2p_id:
+          type: integer
+          description: Идентификатор операции Best2Pay.
+          minimum: 1
+          example: 11210728
+        pay_type:
+          type: string
+          description: Тип оплаты заказа.
+          enum:
+            - CARD_URL
+            - CARD_TOKEN
+            - SBP_QR
+            - SBP_TOKEN
+          example: CARD_URL
+        commission:
+          description: Комиссия заказа.
+          $ref: '#/components/schemas/Money'
+        related_sum:
+          description: Сумма связанного заказа.
+          $ref: '#/components/schemas/Money'
+        reimbursement:
+          type: boolean
+          description: Признак компенсационной выплаты.
+          example: true
+        wallets:
+          type: array
+          description: Список кошельков и сумм выплат.
+          minItems: 1
+          items:
+            type: object
+            required:
+              - guid
+              - amount
+            properties:
+              guid:
+                description: GUID кошелька.
+                $ref: '#/components/schemas/Uuid'
+              amount:
+                description: Сумма выплаты на кошелек.
+                $ref: '#/components/schemas/Money'
+    TelegramEvent:
+      type: object
+      required:
+        - telegram_uuid
+        - date
+        - type
+        - details
+      properties:
+        telegram_uuid:
+          description: UUID Telegram-сообщения.
+          $ref: '#/components/schemas/Uuid'
+        date:
+          type: string
+          description: Дата события.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        type:
+          type: string
+          description: Тип события Telegram-сообщения.
+          enum:
+            - fail
+            - send
+            - stop
+          example: send
+        details:
+          type: object
+          description: Детали события.
+          additionalProperties: true
+    MaxEvent:
+      type: object
+      required:
+        - max_message_uuid
+        - date
+        - type
+        - details
+      properties:
+        max_message_uuid:
+          description: UUID Max-сообщения.
+          $ref: '#/components/schemas/Uuid'
+        date:
+          type: string
+          description: Дата события.
+          nullable: true
+          example: '2026-05-05T09:00:00+00:00'
+        type:
+          type: string
+          description: Тип события Max-сообщения.
+          enum:
+            - fail
+            - send
+            - stop
+          example: send
+        details:
+          type: object
+          description: Детали события.
+          additionalProperties: true
