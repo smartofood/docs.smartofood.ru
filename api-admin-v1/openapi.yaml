@@ -1,0 +1,684 @@
+openapi: 3.1.0
+
+info:
+  title: Smartofood Admin API
+  description: Административный API Smartofood для внешних интеграций панели.
+  version: 1.0.0
+  contact:
+    url: https://smartofood.ru
+    email: support@smartofood.ru
+  license:
+    url: https://smartofood.ru/license.pdf
+    name: Публичная оферта
+  x-logo:
+    url: https://docs.smartofood.ru/images/logo.png
+    href: https://docs.smartofood.ru/api-admin-v1/
+
+servers:
+  - url: https://{domain}/api/admin/v1
+    description: Сайт Smartofood
+    variables:
+      domain:
+        default: demo.smartofood.ru
+
+x-tagGroups:
+  - name: Общие
+    tags:
+      - Пинг API
+  - name: Авторизация
+    tags:
+      - Авторизация
+  - name: Управление
+    tags:
+      - Настройки
+      - SMS
+
+paths:
+  /ping:
+    get:
+      tags:
+        - Пинг API
+      summary: Пинг API
+      description: Проверяет доступность admin API и валидность переданного access, manual или support JWT.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: API доступен
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: OK
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/login:
+    post:
+      tags:
+        - Авторизация
+      summary: Авторизация по email и паролю
+      description: Возвращает access и refresh token для активного пользователя панели. В production-запросах требуется валидный ответ SmartCaptcha.
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - sec_response
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя панели
+                  example: admin@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя панели
+                  example: Password1
+                sec_response:
+                  type: string
+                  description: Ответ Yandex SmartCaptcha
+                  example: 0.23Yx...
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Доступ запрещен или требуется двухэтапная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                twoStepRequired:
+                  summary: Требуется двухэтапная авторизация
+                  value:
+                    error: Требуется двухэтапная авторизация
+                    code: 403
+                forbidden:
+                  summary: Доступ запрещен
+                  value:
+                    error: Доступ запрещен
+                    code: 403
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/confirm:
+    post:
+      tags:
+        - Авторизация
+      summary: Подтверждение двухэтапной авторизации
+      description: Подтверждает код двухэтапной авторизации и возвращает access и refresh token.
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+                - sec_response
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя панели
+                  example: admin@example.com
+                code:
+                  type: string
+                  description: Код подтверждения из письма
+                  example: '123456'
+                sec_response:
+                  type: string
+                  description: Ответ Yandex SmartCaptcha
+                  example: 0.23Yx...
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/refresh:
+    post:
+      tags:
+        - Авторизация
+      summary: Обновление токенов
+      description: Обменивает действующий refresh token на новую пару access и refresh token. Использованный refresh token отзывается.
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token
+                  example: 5811b81f0f19978e9f9d0be3b41e2f5b
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/logout:
+    post:
+      tags:
+        - Авторизация
+      summary: Выход
+      description: Отзывает refresh token, связанный с текущим access JWT. Manual token через этот метод не отзывается.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                type: 'null'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /settings:
+    get:
+      tags:
+        - Настройки
+      summary: Список настроек
+      description: Возвращает настройки admin API в форматированном виде. Если передан search, возвращает настройки с указанным префиксом ключа. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+        - name: search
+          in: query
+          description: Префикс ключей настроек для поиска
+          required: false
+          schema:
+            type: string
+          example: COMMON_
+      responses:
+        '200':
+          description: Массив форматированных настроек
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  oneOf:
+                    - $ref: '#/components/schemas/Setting'
+                    - type: string
+              example:
+                COMMON_ROWS_PER_PAGE:
+                  name: Количество записей на странице
+                  value: '50'
+                  raw: '50'
+                  type: number
+                  default: '50'
+                COMMON_EVENT_PERIOD:
+                  name: Период хранения системных событий
+                  value: Месяц
+                  raw: month
+                  type: select
+                  default: month
+                  data:
+                    day: День
+                    week: Неделя
+                    month: Месяц
+                    year: Год
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    post:
+      tags:
+        - Настройки
+      summary: Сохранение настройки
+      description: Сохраняет значение существующей настройки admin API. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - key
+                - value
+              properties:
+                key:
+                  type: string
+                  description: Ключ настройки
+                  example: COMMON_ROWS_PER_PAGE
+                value:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                  description: Новое значение настройки
+                  example: '100'
+      responses:
+        '200':
+          description: Форматированное значение обновленной настройки
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  oneOf:
+                    - $ref: '#/components/schemas/Setting'
+                    - type: string
+              example:
+                COMMON_ROWS_PER_PAGE:
+                  name: Количество записей на странице
+                  value: '100'
+                  raw: '100'
+                  type: number
+                  default: '50'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /sms/send:
+    post:
+      tags:
+        - SMS
+      summary: Отправка SMS
+      description: Отправляет SMS через текущий SMS-сервис сайта. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phones
+                - message
+              properties:
+                phones:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    pattern: '^\d+$'
+                  description: Массив телефонов в формате 7XXXXXXXXXX
+                  example:
+                    - '79000000001'
+                    - '79000000002'
+                message:
+                  type: string
+                  description: Текст SMS
+                  example: Тестовое сообщение
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '424':
+          $ref: '#/components/responses/FailedDependencyError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /sms/call:
+    post:
+      tags:
+        - SMS
+      summary: Отправка кода дозвоном
+      description: Отправляет код в номере телефона через текущий SMS-сервис сайта. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  type: string
+                  pattern: '^\d+$'
+                  description: Номер телефона в формате 7XXXXXXXXXX
+                  example: '79000000001'
+      responses:
+        '200':
+          description: Код отправлен
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                properties:
+                  code:
+                    type:
+                      - string
+                      - 'null'
+                    description: Последние цифры номера дозвона, если SMS-сервис вернул код
+                    example: '123456'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '424':
+          $ref: '#/components/responses/FailedDependencyError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /sms/voice:
+    post:
+      tags:
+        - SMS
+      summary: Голосовое сообщение
+      description: Отправляет сообщение голосом через текущий SMS-сервис сайта. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - message
+              properties:
+                phone:
+                  type: string
+                  pattern: '^\d+$'
+                  description: Номер телефона в формате 7XXXXXXXXXX
+                  example: '79000000001'
+                message:
+                  type: string
+                  description: Текст голосового сообщения
+                  example: Ваш код 1234
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '424':
+          $ref: '#/components/responses/FailedDependencyError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Lang:
+      in: header
+      name: X-Lang
+      schema:
+        type: string
+        enum:
+          - ru
+          - kk
+          - en
+          - es
+        example: ru
+      description: Заголовок для указания языка ответа
+      required: false
+    UserAgent:
+      in: header
+      name: User-Agent
+      schema:
+        type: string
+      required: true
+  schemas:
+    AuthData:
+      type: object
+      required:
+        - user_id
+        - access_token
+        - refresh_token
+      properties:
+        user_id:
+          type: integer
+          description: ID пользователя панели
+          example: 1
+        access_token:
+          type: string
+          description: JWT access token. В payload содержит `token_type`, `token_id` и `user_id`.
+        refresh_token:
+          type: string
+          description: Refresh token
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          example: Описание причины
+        code:
+          type: integer
+          example: 400
+    Setting:
+      type: object
+      description: Форматированное значение настройки
+      required:
+        - name
+        - value
+        - raw
+        - type
+        - default
+      properties:
+        name:
+          type: string
+          description: Название настройки
+          example: Количество записей на странице
+        value:
+          description: Форматированное значение настройки
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+              items:
+                type: string
+        raw:
+          description: Сырое значение настройки
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+              items:
+                type: string
+        type:
+          type: string
+          description: Тип поля настройки
+          example: number
+        default:
+          description: Значение по умолчанию
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: 'null'
+        data:
+          type: object
+          description: Доступные значения для select-настроек
+          additionalProperties:
+            type: string
+  responses:
+    StatusSuccess:
+      description: Операция выполнена
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - status
+            properties:
+              status:
+                type: string
+                example: OK
+    AuthSuccess:
+      description: Успешная авторизация
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthData'
+    BadRequestError:
+      description: Неправильный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedError:
+      description: Пользователь не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenError:
+      description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    FailedDependencyError:
+      description: SMS-сервис не смог выполнить операцию
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Превышен лимит на количество запросов
+    InternalServerError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailableError:
+      description: Сервис недоступен или отключен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
