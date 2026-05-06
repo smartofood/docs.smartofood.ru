@@ -330,7 +330,7 @@ paths:
       tags:
         - Настройки
       summary: Список настроек
-      description: Возвращает raw-значения настроек панели управления. Если передан search, возвращает настройки с указанным префиксом ключа.
+      description: Возвращает настройки панели управления в форматированном виде. Если передан search, возвращает настройки с указанным префиксом ключа.
       parameters:
         - name: search
           in: query
@@ -341,17 +341,34 @@ paths:
           example: COMMON_
       responses:
         '200':
-          description: Массив настроек.
+          description: Массив форматированных настроек.
           content:
             application/json:
               schema:
                 type: object
                 additionalProperties:
-                  nullable: true
-                  type: string
+                  oneOf:
+                    - $ref: '#/components/schemas/Setting'
+                    - type: string
               example:
-                COMMON_ROWS_PER_PAGE: '50'
-                COMMON_MAX_ROWS_LIMIT: '1000'
+                COMMON_ROWS_PER_PAGE:
+                  name: Количество записей на странице
+                  value: '50'
+                  raw: '50'
+                  type: number
+                  default: '50'
+                COMMON_EVENT_PERIOD:
+                  name: Период хранения системных событий
+                  value: Месяц
+                  raw: month
+                  type: select
+                  default: month
+                  data:
+                    day: День
+                    week: Неделя
+                    month: Месяц
+                    year: Год
+                APP_CDN_ASSETS: https://cdn-0.smartofood.ru
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -387,16 +404,22 @@ paths:
                   example: '100'
       responses:
         '200':
-          description: Raw-значение обновленной настройки.
+          description: Форматированное значение обновленной настройки.
           content:
             application/json:
               schema:
                 type: object
                 additionalProperties:
-                  nullable: true
-                  type: string
+                  oneOf:
+                    - $ref: '#/components/schemas/Setting'
+                    - type: string
               example:
-                COMMON_ROWS_PER_PAGE: '100'
+                COMMON_ROWS_PER_PAGE:
+                  name: Количество записей на странице
+                  value: '100'
+                  raw: '100'
+                  type: number
+                  default: '50'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -1393,6 +1416,62 @@ components:
       example:
         - postman
         - test
+    Setting:
+      type: object
+      required:
+        - name
+        - value
+        - raw
+        - type
+        - default
+      properties:
+        name:
+          type: string
+          description: Название настройки для отображения.
+          example: Количество записей на странице
+        value:
+          type: string
+          description: Отформатированное значение настройки для отображения.
+          example: '50'
+        raw:
+          nullable: true
+          type: string
+          description: Исходное значение настройки для сохранения и редактирования.
+          example: '50'
+        type:
+          type: string
+          description: Тип поля настройки в интерфейсе.
+          enum:
+            - bool
+            - decimal
+            - number
+            - select
+            - string
+            - text
+          example: number
+        default:
+          nullable: true
+          type: string
+          description: Значение по умолчанию.
+          example: '50'
+        data:
+          type: object
+          description: Варианты значений для настроек типа select.
+          additionalProperties:
+            type: string
+          example:
+            day: День
+            week: Неделя
+            month: Месяц
+            year: Год
+        hint:
+          type: string
+          description: Подсказка для редактирования настройки.
+          example: '{domain} &mdash; домен сайта'
+        desc:
+          type: string
+          description: Дополнительное описание настройки.
+          example: Используется при формировании счета.
     Button:
       type: object
       required:
