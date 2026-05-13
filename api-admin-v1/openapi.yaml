@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Admin API
   description: Административный API Smartofood для внешних интеграций панели.
-  version: 1.0.0
+  version: 1.0.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -73,7 +73,7 @@ paths:
       tags:
         - Авторизация
       summary: Авторизация по email и паролю
-      description: Возвращает access и refresh token для активного пользователя панели. В production-запросах требуется валидный ответ SmartCaptcha.
+      description: Возвращает access и refresh token для активного пользователя панели. Если пользователю требуется двухэтапная авторизация, возвращает 403 с is_two_step_auth. Если пользователю требуется обязательная смена пароля, возвращает 403 с password_change_token для метода смены пароля. В production-запросах требуется валидный ответ SmartCaptcha.
       parameters:
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
@@ -110,17 +110,28 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
-          description: Доступ запрещен или требуется двухэтапная авторизация
+          description: Доступ запрещен, требуется двухэтапная авторизация или обязательная смена пароля
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                oneOf:
+                  - $ref: '#/components/schemas/Error'
+                  - $ref: '#/components/schemas/TwoStepAuthRequired'
+                  - $ref: '#/components/schemas/PasswordChangeRequired'
               examples:
                 twoStepRequired:
                   summary: Требуется двухэтапная авторизация
                   value:
                     error: Требуется двухэтапная авторизация
                     code: 403
+                    is_two_step_auth: true
+                passwordChangeRequired:
+                  summary: Требуется смена пароля
+                  value:
+                    error: Требуется смена пароля
+                    code: 403
+                    is_force_change_pwd: true
+                    password_change_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
                 forbidden:
                   summary: Доступ запрещен
                   value:
@@ -137,7 +148,7 @@ paths:
       tags:
         - Авторизация
       summary: Подтверждение двухэтапной авторизации
-      description: Подтверждает код двухэтапной авторизации и возвращает access и refresh token.
+      description: Подтверждает код двухэтапной авторизации и возвращает access и refresh token. Если после подтверждения пользователю требуется обязательная смена пароля, возвращает 403 с password_change_token для метода смены пароля.
       parameters:
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
@@ -173,7 +184,129 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
+          description: Доступ запрещен или требуется обязательная смена пароля
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Error'
+                  - $ref: '#/components/schemas/PasswordChangeRequired'
+              examples:
+                passwordChangeRequired:
+                  summary: Требуется смена пароля
+                  value:
+                    error: Требуется смена пароля
+                    code: 403
+                    is_force_change_pwd: true
+                    password_change_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+                forbidden:
+                  summary: Доступ запрещен
+                  value:
+                    error: Доступ запрещен
+                    code: 403
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/change-password:
+    post:
+      tags:
+        - Авторизация
+      summary: Обязательная смена пароля
+      description: Меняет пароль пользователя по password_change_token, полученному при авторизации с обязательной сменой пароля, и возвращает access и refresh token. В production-запросах требуется валидный ответ SmartCaptcha.
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password_change_token
+                - pwd1
+                - pwd2
+                - sec_response
+              properties:
+                password_change_token:
+                  type: string
+                  description: Короткоживущий JWT token для обязательной смены пароля
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+                pwd1:
+                  type: string
+                  format: password
+                  description: Новый пароль
+                  example: NewPassword1
+                pwd2:
+                  type: string
+                  format: password
+                  description: Повтор нового пароля
+                  example: NewPassword1
+                sec_response:
+                  type: string
+                  description: Ответ Yandex SmartCaptcha
+                  example: 0.23Yx...
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
           $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/recovery:
+    post:
+      tags:
+        - Авторизация
+      summary: Восстановление пароля
+      description: Отправляет пользователю панели новый пароль по email. В production-запросах требуется валидный ответ SmartCaptcha.
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - sec_response
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя панели
+                  example: admin@example.com
+                sec_response:
+                  type: string
+                  description: Ответ Yandex SmartCaptcha
+                  example: 0.23Yx...
+      responses:
+        '200':
+          description: Новый пароль отправлен
+          content:
+            application/json:
+              schema:
+                type: 'null'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -577,6 +710,33 @@ components:
         code:
           type: integer
           example: 400
+    TwoStepAuthRequired:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          required:
+            - is_two_step_auth
+          properties:
+            is_two_step_auth:
+              type: boolean
+              description: Признак необходимости ввода кода двухэтапной авторизации
+              example: true
+    PasswordChangeRequired:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          required:
+            - is_force_change_pwd
+            - password_change_token
+          properties:
+            is_force_change_pwd:
+              type: boolean
+              description: Признак обязательной смены пароля
+              example: true
+            password_change_token:
+              type: string
+              description: Короткоживущий JWT token для метода обязательной смены пароля
+              example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
     Setting:
       type: object
       description: Форматированное значение настройки
@@ -658,6 +818,12 @@ components:
             $ref: '#/components/schemas/Error'
     ForbiddenError:
       description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundError:
+      description: Объект не найден
       content:
         application/json:
           schema:
