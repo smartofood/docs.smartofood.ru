@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.25.0
+  version: 1.25.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -2843,7 +2843,7 @@ paths:
       tags:
         - Местоположение
       summary: Текущее местоположение
-      description: Возвращает текущее местоположение пользователя по user_hash
+      description: Возвращает текущее местоположение пользователя по user_hash, включая последний адрес доставки и последнее заведение самовывоза
       parameters:
         - $ref: '#/components/parameters/UserHash'
         - $ref: '#/components/parameters/Lang'
@@ -2854,7 +2854,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Location'
+                $ref: '#/components/schemas/LocationResponse'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '402':
@@ -2873,7 +2873,7 @@ paths:
       tags:
         - Местоположение
       summary: Текущее местоположение
-      description: Обновляет текущее местоположение пользователя
+      description: Обновляет текущее местоположение пользователя и сохраняет отдельно последний адрес доставки и последнее заведение самовывоза
       parameters:
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/UserAgent'
@@ -2891,7 +2891,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Location'
+                $ref: '#/components/schemas/LocationResponse'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '402':
@@ -4537,12 +4537,45 @@ components:
       type: string
       description: Отформатированный адрес
       example: Москва, Сухонская, 11
-    Location:
+    LocationResponse:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          description: Текущее местоположение пользователя
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/UserLocationDto'
+    UserLocationDto:
+      type: object
+      required:
+        - type
+        - delivery
+        - pickup
+      properties:
+        type:
+          type: string
+          description: Текущий выбранный тип локации
+          example: delivery
+          enum:
+            - delivery
+            - pickup
+        delivery:
+          description: Последний указанный адрес доставки
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/LocationDelivery'
+        pickup:
+          description: Последнее выбранное заведение самовывоза
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/LocationPickup'
+    LocationDelivery:
       type: object
       required:
         - city_id
         - shop_id
-        - type
         - city
         - street
         - house
@@ -4551,15 +4584,6 @@ components:
           $ref: '#/components/schemas/CityId'
         shop_id:
           $ref: '#/components/schemas/ShopId'
-        shop_name:
-          $ref: '#/components/schemas/ShopName'
-        type:
-          type: string
-          description: Тип локации
-          example: delivery
-          enum:
-            - delivery
-            - pickup
         city:
           $ref: '#/components/schemas/CityName'
         district:
@@ -4588,6 +4612,34 @@ components:
           $ref: '#/components/schemas/KladrId'
         place_id:
           $ref: '#/components/schemas/PlaceId'
+    LocationPickup:
+      type: object
+      required:
+        - city_id
+        - shop_id
+        - shop_name
+        - city
+        - street
+        - house
+      properties:
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
+        shop_name:
+          $ref: '#/components/schemas/ShopName'
+        city:
+          $ref: '#/components/schemas/CityName'
+        district:
+          $ref: '#/components/schemas/District'
+        street:
+          $ref: '#/components/schemas/Street'
+        house:
+          $ref: '#/components/schemas/House'
+        addr_lat:
+          $ref: '#/components/schemas/AddrLat'
+        addr_lon:
+          $ref: '#/components/schemas/AddrLon'
     AddrLat:
       type: number
       description: Широта адреса
