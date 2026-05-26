@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Admin API
   description: Административный API Smartofood для внешних интеграций панели.
-  version: 1.0.1
+  version: 1.1.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -28,10 +28,15 @@ x-tagGroups:
   - name: Авторизация
     tags:
       - Авторизация
+      - Коды авторизации
+  - name: Данные
+    tags:
+      - Заказы
+      - Гости
   - name: Управление
     tags:
       - Настройки
-      - SMS
+      - Вебхуки
 
 paths:
   /ping:
@@ -490,12 +495,280 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /sms/send:
+  /orders:
+    get:
+      tags:
+        - Заказы
+      summary: Поиск заказов
+      description: Возвращает список обработанных заказов панели. Новые необработанные заказы не попадают в выдачу.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+            example: '2026-05-01'
+          description: Начальная дата создания заказа. Передается вместе с date_to.
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+            example: '2026-05-25'
+          description: Конечная дата создания заказа. Передается вместе с date_from.
+        - in: query
+          name: city_id
+          schema:
+            type: integer
+            minimum: 1
+          description: ID города
+        - in: query
+          name: guest_id
+          schema:
+            type: integer
+            minimum: 1
+          description: ID гостя
+        - in: query
+          name: shop_id
+          schema:
+            type: integer
+            minimum: 1
+          description: ID заведения
+        - in: query
+          name: order_type
+          schema:
+            type: string
+            enum:
+              - delivery
+              - pickup
+              - table
+          description: Тип заказа
+        - in: query
+          name: payment_type
+          schema:
+            type: string
+            enum:
+              - cash
+              - card
+              - online
+          description: Тип оплаты
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - accepted
+              - progress
+              - completed
+              - ready
+              - delivery
+              - delivered
+              - closed
+              - canceled
+          description: Статус заказа
+        - in: query
+          name: source
+          schema:
+            type: string
+            enum:
+              - site
+              - webview
+              - telegram
+              - external
+          description: Источник заказа
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Количество записей на странице
+      responses:
+        '200':
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - orders
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminOrderListItem'
+                  next:
+                    type: integer
+                    description: Номер следующей страницы, если в выдаче есть продолжение
+                    example: 2
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /orders/{id}:
+    get:
+      tags:
+        - Заказы
+      summary: Заказ по ID
+      description: Возвращает один заказ панели по внутреннему ID.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Заказ
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - order
+                properties:
+                  order:
+                    $ref: '#/components/schemas/AdminOrder'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /guests:
+    get:
+      tags:
+        - Гости
+      summary: Поиск гостей
+      description: Возвращает список гостей панели по городу и поисковой строке.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - in: query
+          name: city_id
+          schema:
+            type: integer
+            minimum: 1
+          description: ID города
+        - in: query
+          name: query
+          schema:
+            type: string
+            example: '79000000001'
+          description: Поиск по телефону или email
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Количество записей на странице
+      responses:
+        '200':
+          description: Список гостей
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guests
+                properties:
+                  guests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminGuestListItem'
+                  next:
+                    type: integer
+                    description: Номер следующей страницы, если в выдаче есть продолжение
+                    example: 2
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /guests/{id}:
+    get:
+      tags:
+        - Гости
+      summary: Гость по ID
+      description: Возвращает одного гостя панели по внутреннему ID.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Гость
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guest
+                properties:
+                  guest:
+                    $ref: '#/components/schemas/AdminGuest'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /auth/code/sms:
     post:
       tags:
-        - SMS
-      summary: Отправка SMS
-      description: Отправляет SMS через текущий SMS-сервис сайта. Метод доступен администраторам.
+        - Коды авторизации
+      summary: Отправка кода авторизации SMS
+      description: Отправляет код авторизации в SMS через текущий SMS-сервис сайта. Метод доступен администраторам.
       security:
         - BearerAuth: [ ]
       parameters:
@@ -507,23 +780,19 @@ paths:
             schema:
               type: object
               required:
-                - phones
-                - message
+                - phone
+                - code
               properties:
-                phones:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    pattern: '^\d+$'
-                  description: Массив телефонов в формате 7XXXXXXXXXX
-                  example:
-                    - '79000000001'
-                    - '79000000002'
-                message:
+                phone:
                   type: string
-                  description: Текст SMS
-                  example: Тестовое сообщение
+                  pattern: '^\d+$'
+                  description: Номер телефона в формате 7XXXXXXXXXX
+                  example: '79000000001'
+                code:
+                  type: string
+                  pattern: '^\d+$'
+                  description: Код авторизации
+                  example: '1234'
       responses:
         '200':
           $ref: '#/components/responses/StatusSuccess'
@@ -541,12 +810,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /sms/call:
+  /auth/code/call:
     post:
       tags:
-        - SMS
+        - Коды авторизации
       summary: Отправка кода дозвоном
-      description: Отправляет код в номере телефона через текущий SMS-сервис сайта. Метод доступен администраторам.
+      description: Отправляет код авторизации дозвоном через текущий SMS-сервис сайта. Метод доступен администраторам.
       security:
         - BearerAuth: [ ]
       parameters:
@@ -576,10 +845,8 @@ paths:
                   - code
                 properties:
                   code:
-                    type:
-                      - string
-                      - 'null'
-                    description: Последние цифры номера дозвона, если SMS-сервис вернул код
+                    type: string
+                    description: Последние цифры номера дозвона
                     example: '123456'
         '400':
           $ref: '#/components/responses/BadRequestError'
@@ -595,12 +862,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /sms/voice:
+  /auth/code/telegram:
     post:
       tags:
-        - SMS
-      summary: Голосовое сообщение
-      description: Отправляет сообщение голосом через текущий SMS-сервис сайта. Метод доступен администраторам.
+        - Коды авторизации
+      summary: Отправка кода авторизации в Telegram
+      description: Отправляет код авторизации в Telegram через текущий SMS-сервис сайта. Метод доступен администраторам.
       security:
         - BearerAuth: [ ]
       parameters:
@@ -613,17 +880,23 @@ paths:
               type: object
               required:
                 - phone
-                - message
+                - code
               properties:
                 phone:
                   type: string
                   pattern: '^\d+$'
                   description: Номер телефона в формате 7XXXXXXXXXX
                   example: '79000000001'
-                message:
+                code:
                   type: string
-                  description: Текст голосового сообщения
-                  example: Ваш код 1234
+                  pattern: '^\d+$'
+                  description: Код авторизации
+                  example: '1234'
+                cascade:
+                  type: boolean
+                  default: false
+                  description: Включить SMS-каскад, если Telegram-код не будет доставлен
+                  example: false
       responses:
         '200':
           $ref: '#/components/responses/StatusSuccess'
@@ -641,6 +914,193 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /webhooks/endpoints:
+    get:
+      tags:
+        - Вебхуки
+      summary: Список адресов вебхуков
+      description: Возвращает настроенные адреса HTTP-уведомлений. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+      responses:
+        '200':
+          description: Список адресов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - endpoints
+                properties:
+                  endpoints:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookEndpoint'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    post:
+      tags:
+        - Вебхуки
+      summary: Сохранение адреса вебхука
+      description: Создает новый адрес HTTP-уведомлений. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEndpointSaveRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    patch:
+      tags:
+        - Вебхуки
+      summary: Обновление адреса вебхука
+      description: Обновляет существующий адрес HTTP-уведомлений. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEndpointUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /webhooks/endpoints/{id}:
+    get:
+      tags:
+        - Вебхуки
+      summary: Адрес вебхука
+      description: Возвращает один адрес HTTP-уведомлений. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Адрес вебхука
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - endpoint
+                properties:
+                  endpoint:
+                    $ref: '#/components/schemas/WebhookEndpoint'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    delete:
+      tags:
+        - Вебхуки
+      summary: Удаление адреса вебхука
+      description: Удаляет адрес HTTP-уведомлений, если у него нет активных доставок. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+webhooks:
+  orderStatus:
+    post:
+      tags:
+        - Вебхуки
+      summary: HTTP-уведомление о статусе заказа
+      description: |
+        Smartofood отправляет POST-запрос на включенные адреса вебхуков, у которых в event_types указан тип события из поля event.
+
+        Если для адреса задан secret, он передается в каждом запросе в заголовке X-Smartofood-Webhook-Secret-Token.
+
+        Всего выполняется до 5 попыток доставки: первая сразу, вторая через 1 минуту, третья через 5 минут, четвертая через 15 минут, пятая через 1 час.
+
+        Вебхуки отправляются с IP-адресов 158.160.27.41 и 158.160.59.130.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderWebhookNotification'
+      responses:
+        '2XX':
+          description: Уведомление принято. Любой HTTP-статус 2xx считается успешной доставкой.
+        '408':
+          description: Доставка будет повторена
+        '429':
+          description: Доставка будет повторена
+        '5XX':
+          description: Доставка будет повторена
 
 components:
   securitySchemes:
@@ -662,6 +1122,14 @@ components:
         example: ru
       description: Заголовок для указания языка ответа
       required: false
+    Id:
+      in: path
+      name: id
+      schema:
+        type: integer
+        minimum: 1
+      description: Идентификатор записи
+      required: true
   schemas:
     AuthData:
       type: object
@@ -767,6 +1235,1041 @@ components:
           description: Доступные значения для select-настроек
           additionalProperties:
             type: string
+    AdminOrderProduct:
+      type: object
+      description: Продукт заказа в безопасной форме admin API
+      required:
+        - id
+        - item_id
+        - schema_id
+        - product_id
+        - parent_group
+        - size_id
+        - name
+        - selectors
+        - extra_added
+        - origin_price
+        - price
+        - amount
+        - total
+        - discount
+        - is_marker
+        - is_compound
+        - pay_sum
+        - origin_price_raw
+        - price_raw
+        - total_raw
+        - discount_raw
+        - pay_sum_raw
+      properties:
+        id:
+          type: integer
+          description: ID элемента заказа
+          example: 133
+        item_id:
+          type: string
+          description: Идентификатор элемента заказа
+          example: 2cdabb3b-9709-46d2-b6c8-6b6be05eea52
+        schema_id:
+          type: string
+          nullable: true
+          description: Идентификатор схемы модификаторов
+          example: 019b0733-bf4a-4652-9451-f836188749c3
+        product_id:
+          type: string
+          description: Идентификатор продукта
+          example: cbdefc34-4d2f-4fb1-971b-5e77df26f904
+        parent_group:
+          type: string
+          description: Идентификатор родительской группы
+          example: f08451c9-1900-4aa2-a345-09b89cf235f2
+        size_id:
+          type: string
+          nullable: true
+          description: Идентификатор размера
+          example: cbdefc34-4d2f-4fb1-971b-5e77df26f904
+        name:
+          type: string
+          description: Название продукта
+          example: Пицца Маргарита
+        origin_price:
+          type: string
+          description: Цена до скидок с валютой
+          example: 600 ₽
+        price:
+          type: string
+          description: Цена с валютой
+          example: 500 ₽
+        amount:
+          type: integer
+          description: Количество
+          example: 1
+        total:
+          type: string
+          description: Сумма с валютой
+          example: 500 ₽
+        discount:
+          type: string
+          description: Скидка с валютой
+          example: 100 ₽
+        pay_sum:
+          type: string
+          description: Сумма к оплате с валютой
+          example: 500 ₽
+        origin_price_raw:
+          type: string
+          description: Цена до скидок в валюте сайта
+          example: '600.00'
+        price_raw:
+          type: string
+          description: Цена в валюте сайта
+          example: '500.00'
+        total_raw:
+          type: string
+          description: Сумма в валюте сайта
+          example: '500.00'
+        discount_raw:
+          type: string
+          description: Скидка в валюте сайта
+          example: '100.00'
+        pay_sum_raw:
+          type: string
+          description: Сумма к оплате в валюте сайта
+          example: '500.00'
+        is_marker:
+          type: boolean
+          description: Маркерный элемент корзины
+          example: false
+        is_compound:
+          type: boolean
+          description: Сложная позиция
+          example: false
+        selectors:
+          type: string
+          description: Список примененных селекторных модификаторов
+        extra_added:
+          type: string
+          description: Список добавленных одиночных модификаторов
+    AdminOrderData:
+      type: object
+      description: Заказ в безопасной форме admin API
+      properties:
+        id:
+          type: integer
+          description: ID заказа
+          example: 12345
+        guid:
+          type: string
+          format: uuid
+          description: GUID заказа
+          example: 1fae8b9f-fb49-4977-9c0f-47c00a77dcb5
+        user_hash:
+          type: string
+          description: Хеш пользователя
+          example: 6a2df1c8b0f4
+        city_id:
+          type: integer
+          description: ID города
+          example: 1
+        guest_id:
+          type: integer
+          description: ID гостя
+          example: 500
+        shop_id:
+          type: integer
+          description: ID заведения
+          example: 7
+        coupon_id:
+          type: integer
+          description: ID купона
+          example: 0
+        coupon_code:
+          type: string
+          description: Код купона
+          example: SALE10
+        shop_name:
+          type: string
+          description: Название заведения
+          example: Smartofood Cafe
+        section_id:
+          type: string
+          nullable: true
+          description: Идентификатор секции
+          example: 3
+        table_id:
+          type: string
+          nullable: true
+          description: Идентификатор стола
+          example: 12
+        table_number:
+          type: integer
+          description: Номер стола
+          example: 0
+        table_addr:
+          type: string
+          nullable: true
+          description: Адрес стола
+          example: Зал 1
+        created:
+          type: string
+          description: Время создания заказа
+          example: '25.05.2026, 18:30'
+        created_local:
+          type: string
+          description: Локальное время создания заказа
+          example: '25.05.2026, 18:30'
+        created_iso:
+          type: string
+          format: date-time
+          description: Время создания заказа в ISO 8601
+          example: '2026-05-25T18:30:00+05:00'
+        status:
+          type: string
+          enum:
+            - awaiting
+            - payment_awaiting
+            - payment_failed
+            - terminal_awaiting
+            - distribution_awaiting
+            - sending
+            - error
+            - accepted
+            - bill
+            - progress
+            - completed
+            - ready
+            - delivery
+            - delivered
+            - closed
+            - canceled
+          description: Статус заказа
+          example: accepted
+        status_name:
+          type: string
+          description: Название статуса заказа
+          example: Принят
+        type:
+          type: string
+          enum:
+            - delivery
+            - pickup
+            - table
+          description: Тип заказа
+          example: delivery
+        type_name:
+          type: string
+          description: Название типа заказа
+          example: Доставка
+        on_time:
+          type: string
+          nullable: true
+          description: Время, к которому нужен заказ
+          example: '25.05.2026, 19:00'
+        on_time_local:
+          type: string
+          nullable: true
+          description: Локальное время, к которому нужен заказ
+          example: '25.05.2026, 19:00'
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий к заказу
+          example: Позвонить перед доставкой
+        addr:
+          type: string
+          nullable: true
+          description: Адрес доставки
+          example: ул. Ленина, 1
+        addr_lat:
+          type: number
+          nullable: true
+          description: Широта адреса
+          example: 55.751244
+        addr_lon:
+          type: number
+          nullable: true
+          description: Долгота адреса
+          example: 37.618423
+        name:
+          type: string
+          description: Имя гостя
+          example: Иван
+        phone:
+          type: string
+          description: Телефон гостя
+          example: '+7 (900) 000-00-01'
+        city:
+          type: string
+          description: Город
+          example: Москва
+        district:
+          type: string
+          nullable: true
+          description: Район
+          example: Центральный
+        street:
+          type: string
+          nullable: true
+          description: Улица
+          example: Ленина
+        house:
+          type: string
+          nullable: true
+          description: Дом
+          example: '1'
+        apartment:
+          type: string
+          nullable: true
+          description: Квартира
+          example: '10'
+        entrance:
+          type: string
+          nullable: true
+          description: Подъезд
+          example: '2'
+        floor:
+          type: string
+          nullable: true
+          description: Этаж
+          example: '3'
+        doorphone:
+          type: string
+          nullable: true
+          description: Домофон
+          example: '10'
+        payment_type:
+          type: string
+          enum:
+            - cash
+            - card
+            - online
+          description: Тип оплаты
+          example: online
+        payment_status:
+          type: string
+          description: Статус оплаты
+          example: success
+        payment_type_name:
+          type: string
+          description: Название типа оплаты
+          example: Онлайн-оплата
+        payment_status_name:
+          type: string
+          description: Название статуса оплаты
+          example: Успешная оплата
+        payment_merchant:
+          type: string
+          description: Сервис онлайн-оплаты
+          example: yookassa
+        payment_merchant_name:
+          type: string
+          description: Название сервиса онлайн-оплаты
+          example: ЮKassa
+        payment_method:
+          type: string
+          description: Метод онлайн-оплаты
+          example: card
+        payment_method_name:
+          type: string
+          description: Название метода онлайн-оплаты
+          example: Онлайн-оплата на сайте
+        loyalty_can:
+          type: string
+          description: Доступно бонусов лояльности с валютой
+          example: 0 ₽
+        loyalty_can_raw:
+          type: string
+          description: Доступно бонусов лояльности в валюте сайта
+          example: '0'
+        loyalty_bonus:
+          type: string
+          description: Сумма оплаты бонусами лояльности с валютой
+          example: 0 ₽
+        loyalty_bonus_raw:
+          type: string
+          description: Сумма оплаты бонусами лояльности в валюте сайта
+          example: '0.00'
+        loyalty_discount:
+          type: string
+          description: Сумма скидки по акциям лояльности с валютой
+          example: 0 ₽
+        loyalty_discount_raw:
+          type: string
+          description: Сумма скидки по акциям лояльности в валюте сайта
+          example: '0.00'
+        coupon_discount:
+          type: string
+          description: Сумма скидки по промокоду с валютой
+          example: 100 ₽
+        coupon_discount_raw:
+          type: string
+          description: Сумма скидки по промокоду в валюте сайта
+          example: '100.00'
+        coupon_percent:
+          type: string
+          nullable: true
+          description: Процент скидки промокода
+          example: '10'
+        delivery_price:
+          type: string
+          description: Стоимость доставки с валютой
+          example: 100 ₽
+        delivery_price_raw:
+          type: string
+          description: Стоимость доставки в валюте сайта
+          example: '100.00'
+        free_delivery:
+          type: string
+          description: Сумма заказа для бесплатной доставки с валютой
+          example: 1000 ₽
+        free_delivery_raw:
+          type: string
+          description: Сумма заказа для бесплатной доставки в валюте сайта
+          example: '1000'
+        minimum_order:
+          type: string
+          description: Минимальная сумма заказа с валютой
+          example: 600 ₽
+        minimum_order_raw:
+          type: string
+          description: Минимальная сумма заказа в валюте сайта
+          example: '600'
+        service_fee:
+          type: string
+          description: Сервисный сбор с валютой
+          example: 50 ₽
+        service_fee_raw:
+          type: string
+          description: Сервисный сбор в валюте сайта
+          example: '50.00'
+        total:
+          type: string
+          description: Полная сумма заказа с валютой
+          example: 1200 ₽
+        total_raw:
+          type: string
+          description: Полная сумма заказа в валюте сайта
+          example: '1200.00'
+        revenue_fee:
+          type: string
+          description: Сбор по тарифу с валютой
+          example: 30 ₽
+        revenue_fee_raw:
+          type: string
+          description: Сбор по тарифу в валюте сайта
+          example: '30.00'
+        cash_change:
+          type: string
+          nullable: true
+          description: Сдача с суммы
+          example: 2000 ₽
+        cash_change_raw:
+          type: integer
+          description: Сдача с суммы в валюте сайта
+          example: 0
+        app_plan:
+          type: string
+          description: Тариф приложения на момент заказа
+          example: individual
+        is_undistributed:
+          type: boolean
+          description: Заказ не распределен
+          example: false
+        is_after_hours:
+          type: boolean
+          description: Оформлен в нерабочее время
+          example: false
+        is_out_of_zones:
+          type: boolean
+          description: Адрес вне зоны доставки
+          example: false
+        is_order_on_time:
+          type: boolean
+          description: Заказ на время
+          example: false
+        is_external:
+          type: boolean
+          description: Внешний заказ
+          example: false
+        is_webview:
+          type: boolean
+          description: Заказ из webview
+          example: false
+        is_viewed_by_guest:
+          type: boolean
+          description: Заказ просмотрен гостем
+          example: false
+        is_empty_pay_sum:
+          type: boolean
+          description: Бесплатный заказ
+          example: false
+        is_cash_available:
+          type: boolean
+          description: Оплата наличными доступна
+          example: true
+        is_card_available:
+          type: boolean
+          description: Оплата банковской картой доступна
+          example: true
+        is_online_available:
+          type: boolean
+          description: Онлайн-оплата доступна
+          example: true
+        pay_sum:
+          type: string
+          description: Сумма к оплате с валютой
+          example: 1100 ₽
+        pay_sum_raw:
+          type: string
+          description: Сумма к оплате в валюте сайта
+          example: '1100.00'
+        sub_total:
+          type: string
+          description: Сумма без доставки с валютой
+          example: 1000 ₽
+        sub_total_raw:
+          type: string
+          description: Сумма без доставки в валюте сайта
+          example: '1000.00'
+        sum_before_delivery:
+          type: string
+          description: Сумма без доставки с учетом скидок с валютой
+          example: 1000 ₽
+        sum_before_delivery_raw:
+          type: string
+          description: Сумма без доставки с учетом скидок в валюте сайта
+          example: '1000.00'
+        addr_hash:
+          type: string
+          description: Хеш адреса
+          example: 74f1fe2271a1eb74903ad7633d196bb2
+        formatted_address:
+          type: string
+          description: Форматированный адрес
+          example: Тюмень, Пермякова, 23 к 1
+        on_time_raw:
+          type: string
+          description: Сырое время заказа на время
+          example: '2026-04-01 18:00:00'
+        on_time_short:
+          type: string
+          description: Короткое время заказа на время
+          example: '18:00'
+        on_time_local_raw:
+          type: string
+          description: Сырое локальное время заказа на время
+          example: '2026-04-01 18:00:00'
+        on_time_local_short:
+          type: string
+          description: Короткое локальное время заказа на время
+          example: '18:00'
+        review_id:
+          type: integer
+          nullable: true
+          description: ID отзыва, если он есть
+          example: null
+        products:
+          type: array
+          description: Список продуктов заказа
+          items:
+            $ref: '#/components/schemas/AdminOrderProduct'
+    AdminOrderListItem:
+      allOf:
+        - $ref: '#/components/schemas/AdminOrderData'
+        - type: object
+          required:
+            - id
+            - guid
+            - city_id
+            - guest_id
+            - shop_id
+            - created
+            - created_local
+            - status
+            - type
+          properties:
+            persons_count:
+              type: string
+              description: Количество персон
+              example: '1'
+    AdminOrder:
+      allOf:
+        - $ref: '#/components/schemas/AdminOrderData'
+        - type: object
+          required:
+            - id
+            - guid
+            - city_id
+            - guest_id
+            - shop_id
+            - created
+            - created_local
+            - status
+            - type
+          properties:
+            persons_count:
+              type: integer
+              description: Количество персон
+              example: 1
+    AdminGuestCard:
+      type: object
+      required:
+        - id
+        - type
+        - name
+      properties:
+        id:
+          type: integer
+          description: ID карты гостя
+          example: 10
+        type:
+          type: string
+          description: Тип карты
+          example: card
+        name:
+          type: string
+          description: Название карты
+          example: Visa •••• 1111
+    AdminGuestData:
+      type: object
+      description: Гость в безопасной форме admin API
+      properties:
+        id:
+          type: integer
+          description: ID гостя
+          example: 500
+        guid:
+          type: string
+          format: uuid
+          description: GUID гостя
+          example: 2a0ea4de-8a89-4c8f-a9df-41d590be1fb2
+        iiko_id:
+          type: string
+          description: ID гостя во внешней POS-системе
+          example: 3f7e68ad-8b3a-4b3c-80ac-1585c8f96987
+        telegram_id:
+          type: integer
+          description: Telegram ID гостя
+          example: 0
+        max_id:
+          type: integer
+          description: Max ID гостя
+          example: 123456789
+        city_id:
+          type: integer
+          description: ID города
+          example: 1
+        registred:
+          type: string
+          description: Время регистрации
+          example: '25.05.2026, 18:30'
+        phone:
+          type: string
+          description: Телефон гостя
+          example: '+7 (900) 000-00-01'
+        email:
+          type: string
+          description: Email гостя
+          example: guest@example.com
+        name:
+          type: string
+          description: Имя гостя
+          example: Иван
+        bday:
+          type: string
+          description: Дата рождения
+          example: 25.05.1990
+        is_subscribed:
+          type: boolean
+          description: Подписан на рассылку
+          example: true
+        is_confirmed:
+          type: boolean
+          description: Телефон подтвержден
+          example: true
+        is_anonymous:
+          type: boolean
+          description: Анонимный пользователь
+          example: false
+        registred_iso:
+          type: string
+          format: date-time
+          description: Время регистрации в ISO 8601
+          example: '2026-01-20T21:31:43+03:00'
+        is_deleted:
+          type: boolean
+          description: Гость удален
+          example: false
+    AdminGuestListItem:
+      allOf:
+        - $ref: '#/components/schemas/AdminGuestData'
+        - type: object
+          required:
+            - id
+            - guid
+            - city_id
+            - registred
+            - phone
+          properties:
+            deleted_at:
+              type: string
+              description: Время удаления
+              example: '0'
+    AdminGuest:
+      allOf:
+        - $ref: '#/components/schemas/AdminGuestData'
+        - type: object
+          required:
+            - id
+            - guid
+            - city_id
+            - registred
+            - phone
+          properties:
+            deleted_at:
+              type: integer
+              description: Время удаления
+              example: 0
+            cards:
+              type: array
+              description: Сохраненные карты гостя
+              items:
+                $ref: '#/components/schemas/AdminGuestCard'
+    WebhookEndpoint:
+      type: object
+      required:
+        - id
+        - url
+        - enabled
+        - event_types
+      properties:
+        id:
+          type: integer
+          description: ID адреса
+          example: 10
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL адреса, на который отправляются HTTP-уведомления
+          example: https://example.com/smartofood/webhook
+        enabled:
+          type: boolean
+          description: Признак включенного адреса
+          example: true
+        event_types:
+          type: array
+          description: Типы событий, которые получает адрес
+          items:
+            type: string
+          example:
+            - order.accepted
+            - order.canceled
+            - order.closed
+    WebhookEndpointSaveRequest:
+      type: object
+      required:
+        - url
+        - event_types
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: Уникальный URL адреса, на который отправляются HTTP-уведомления
+          example: https://example.com/smartofood/webhook
+        secret:
+          type: string
+          maxLength: 256
+          pattern: '^[A-Za-z0-9_-]{1,256}$'
+          description: Необязательный секретный токен для заголовка X-Smartofood-Webhook-Secret-Token
+          example: whsec_123
+        enabled:
+          type: boolean
+          description: Включить адрес. Если поле не передано при создании, адрес создается включенным.
+          example: true
+        event_types:
+          type: array
+          description: Типы событий
+          items:
+            type: string
+            pattern: '^order\.[a-z_]+$'
+          example:
+            - order.accepted
+            - order.canceled
+            - order.closed
+    WebhookEndpointUpdateRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: ID адреса
+          example: 10
+        url:
+          type: string
+          format: uri
+          maxLength: 255
+          description: Уникальный URL адреса, на который отправляются HTTP-уведомления
+          example: https://example.com/smartofood/webhook
+        secret:
+          type: string
+          maxLength: 256
+          pattern: '^[A-Za-z0-9_-]{1,256}$'
+          description: Необязательный секретный токен для заголовка X-Smartofood-Webhook-Secret-Token
+          example: whsec_123
+        enabled:
+          type: boolean
+          description: Включить адрес
+          example: true
+        event_types:
+          type: array
+          description: Типы событий
+          items:
+            type: string
+            pattern: '^order\.[a-z_]+$'
+          example:
+            - order.accepted
+            - order.canceled
+            - order.closed
+    OrderWebhookNotification:
+      type: object
+      required:
+        - type
+        - event
+        - id
+        - created_at
+        - object
+      properties:
+        type:
+          type: string
+          enum:
+            - notification
+          description: Тип payload
+          example: notification
+        event:
+          type: string
+          description: Тип события
+          enum:
+            - order.accepted
+            - order.cooking
+            - order.packing
+            - order.waiting
+            - order.done
+            - order.delivering
+            - order.delivered
+            - order.pickedup
+            - order.canceled
+            - order.closed
+          example: order.accepted
+        id:
+          type: string
+          format: uuid
+          description: UUID события
+          example: 3f6f3f7d-52c0-4cb8-9d3a-9b894b1bb3b3
+        created_at:
+          type: string
+          format: date-time
+          description: Время создания события
+          example: '2026-05-25T07:20:00Z'
+        object:
+          $ref: '#/components/schemas/OrderWebhookObject'
+    OrderWebhookObject:
+      type: object
+      description: Срез заказа, передаваемый в HTTP-уведомлении
+      required:
+        - id
+        - guid
+        - iiko_id
+        - app_id
+        - user_hash
+        - telegram_id
+        - city_id
+        - guest_id
+        - shop_id
+        - coupon_id
+        - coupon_code
+        - shop_name
+        - section_id
+        - table_id
+        - table_number
+        - created
+        - status
+        - type
+        - on_time
+        - name
+        - phone
+        - payment_type
+        - payment_id
+        - payment_status
+        - pay_sum
+        - service_fee
+        - persons_count
+        - is_undistributed
+        - is_iiko_send
+        - is_iiko_error
+        - is_telegram_send
+        - is_email_send
+        - is_notification_send
+        - is_external
+        - is_webview
+      properties:
+        id:
+          type: integer
+          description: ID заказа
+          example: 12345
+        guid:
+          type: string
+          format: uuid
+          description: GUID заказа
+          example: 1fae8b9f-fb49-4977-9c0f-47c00a77dcb5
+        iiko_id:
+          type: string
+          description: ID заказа во внешней POS-системе
+          example: 3f7e68ad-8b3a-4b3c-80ac-1585c8f96987
+        app_id:
+          type: integer
+          nullable: true
+          description: ID приложения
+          example: 1001
+        user_hash:
+          type: string
+          description: Хеш пользователя
+          example: 6a2df1c8b0f4
+        telegram_id:
+          type: integer
+          nullable: true
+          description: Telegram ID гостя
+          example: 123456789
+        city_id:
+          type: integer
+          description: ID города
+          example: 1
+        guest_id:
+          type: integer
+          description: ID гостя
+          example: 500
+        shop_id:
+          type: integer
+          description: ID заведения
+          example: 7
+        coupon_id:
+          type: integer
+          nullable: true
+          description: ID купона
+          example: 15
+        coupon_code:
+          type: string
+          nullable: true
+          description: Код купона
+          example: SALE10
+        shop_name:
+          type: string
+          description: Название заведения
+          example: Smartofood Cafe
+        section_id:
+          type: integer
+          nullable: true
+          description: ID секции
+          example: 3
+        table_id:
+          type: integer
+          nullable: true
+          description: ID стола
+          example: 12
+        table_number:
+          type: string
+          nullable: true
+          description: Номер стола
+          example: '5'
+        created:
+          type: string
+          format: date-time
+          description: Время создания заказа
+          example: '2026-05-25T18:30:00Z'
+        status:
+          type: string
+          description: Статус заказа
+          example: accepted
+        type:
+          type: string
+          description: Тип заказа
+          example: delivery
+        on_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: Время, к которому нужен заказ
+          example: '2026-05-25T18:30:00Z'
+        name:
+          type: string
+          description: Имя гостя
+          example: Иван
+        phone:
+          type: string
+          description: Телефон гостя
+          example: '79000000001'
+        payment_type:
+          type: string
+          description: Тип оплаты
+          example: online
+        payment_id:
+          type: string
+          nullable: true
+          description: ID платежа
+          example: '123456'
+        payment_status:
+          type: string
+          nullable: true
+          description: Статус оплаты
+          example: success
+        pay_sum:
+          type: string
+          description: Сумма к оплате
+          example: '1200.50'
+        service_fee:
+          type: number
+          nullable: true
+          description: Сервисный сбор
+          example: 50
+        persons_count:
+          type: integer
+          description: Количество персон
+          example: 2
+        is_undistributed:
+          type: boolean
+          description: Заказ не распределен
+          example: false
+        is_iiko_send:
+          type: boolean
+          description: Заказ отправлен во внешнюю POS-систему
+          example: true
+        is_iiko_error:
+          type: boolean
+          description: Есть ошибка отправки во внешнюю POS-систему
+          example: false
+        is_telegram_send:
+          type: boolean
+          description: Telegram-уведомление отправлено
+          example: true
+        is_email_send:
+          type: boolean
+          description: Email-уведомление отправлено
+          example: false
+        is_notification_send:
+          type: boolean
+          description: Push-уведомление отправлено
+          example: true
+        is_external:
+          type: boolean
+          description: Внешний заказ
+          example: false
+        is_webview:
+          type: boolean
+          description: Заказ из webview
+          example: false
   responses:
     StatusSuccess:
       description: Операция выполнена
