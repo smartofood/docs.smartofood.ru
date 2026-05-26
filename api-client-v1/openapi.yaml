@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.25.1
+  version: 1.25.2
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -212,6 +212,10 @@ paths:
                     type: string
                     description: Ссылка на приложение в Google Play
                     example: https://play.google.com/store/apps/details?id=ru.smartofood.demo
+                  SITE_APP_APK:
+                    type: string
+                    description: Ссылка на APK-файл приложения
+                    example: https://demo.smartofood.ru/app.apk
                   SITE_APP_IOS:
                     type: string
                     description: Ссылка на приложение в App Store
@@ -4612,6 +4616,8 @@ components:
           $ref: '#/components/schemas/KladrId'
         place_id:
           $ref: '#/components/schemas/PlaceId'
+        addr_hash:
+          $ref: '#/components/schemas/AddrHash'
     LocationPickup:
       type: object
       required:
@@ -6379,6 +6385,7 @@ components:
         - product_id
         - name
         - description
+        - measure_unit
         - weight
         - weight_raw
         - default_weight
@@ -6409,6 +6416,8 @@ components:
           $ref: '#/components/schemas/ProductName'
         description:
           $ref: '#/components/schemas/ProductDescription'
+        measure_unit:
+          $ref: '#/components/schemas/MeasureUnit'
         weight:
           $ref: '#/components/schemas/ProductWeight'
         weight_raw:
@@ -6640,6 +6649,7 @@ components:
         - product_id
         - name
         - description
+        - measure_unit
         - weight
         - weight_raw
         - default_weight
@@ -6668,6 +6678,8 @@ components:
           $ref: '#/components/schemas/ProductName'
         description:
           $ref: '#/components/schemas/ProductDescription'
+        measure_unit:
+          $ref: '#/components/schemas/MeasureUnit'
         weight:
           $ref: '#/components/schemas/ProductWeight'
         weight_raw:
