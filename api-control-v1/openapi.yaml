@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Smartofood Control API
   description: API панели управления Smartofood для клиентов, приложений, конфигов, уведомлений, попапов и кошельков.
-  version: 1.0.0
+  version: 1.1.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -234,6 +234,78 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}:stop:
+    post:
+      tags:
+        - Приложения
+      summary: Остановка сайта
+      description: Останавливает сайт приложения. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Сайт остановлен.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusOk'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}:start:
+    post:
+      tags:
+        - Приложения
+      summary: Запуск сайта
+      description: Запускает сайт приложения. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Сайт запущен.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusOk'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}:paymentOverdue:
+    post:
+      tags:
+        - Приложения
+      summary: Событие просроченной оплаты
+      description: Регистрирует для приложения событие просроченной оплаты. Поддерживает идемпотентность через заголовок `Idempotency-Key`.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Событие зарегистрировано.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusOk'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /configs/{domain}:
     get:
       tags:
@@ -429,6 +501,76 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /payments:
+    get:
+      tags:
+        - Платежи
+      summary: Список записей детализации платежей
+      description: Возвращает постраничный список записей детализации платежей.
+      parameters:
+        - name: client_id
+          in: query
+          description: Цифровой идентификатор клиента.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: query
+          in: query
+          description: Строка поиска по записи детализации.
+          required: false
+          schema:
+            type: string
+          example: Корректировка
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: type
+          in: query
+          description: Тип записи.
+          required: false
+          schema:
+            type: string
+            enum:
+              - debit
+              - credit
+          example: credit
+        - name: date_from
+          in: query
+          description: Начальная дата диапазона.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ShortDate'
+        - name: date_to
+          in: query
+          description: Конечная дата диапазона.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ShortDate'
+      responses:
+        '200':
+          description: Список записей детализации платежей.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - payments
+                properties:
+                  payments:
+                    type: array
+                    description: Список записей детализации платежей.
+                    items:
+                      $ref: '#/components/schemas/Payment'
+                  next:
+                    $ref: '#/components/schemas/NextPage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Платежи
@@ -1379,6 +1521,15 @@ components:
           type: integer
           description: HTTP-код ошибки.
           example: 400
+    StatusOk:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: Статус выполнения операции.
+          example: OK
     Uuid:
       type: string
       format: uuid
@@ -1833,6 +1984,83 @@ components:
           items:
             type: object
             additionalProperties: true
+    Payment:
+      type: object
+      required:
+        - id
+        - account
+        - type
+        - method
+        - client_id
+        - entry
+        - description
+        - sum
+      properties:
+        id:
+          type: integer
+          description: Цифровой идентификатор записи.
+          example: 1001
+        account:
+          type: string
+          description: Назначение записи.
+          enum:
+            - cashless
+            - electronic
+          example: electronic
+        type:
+          type: string
+          description: Тип записи.
+          enum:
+            - debit
+            - credit
+          example: credit
+        method:
+          type: string
+          description: Метод исполнения или назначение записи.
+          nullable: true
+          enum:
+            - autopayment
+            - replenishment
+            - withdrawal
+            - invoice
+            - card
+            - app
+            - sms
+            - call
+            - orders
+            - ssl
+          example: card
+        client_id:
+          type: integer
+          description: Цифровой идентификатор клиента.
+          example: 1
+        checkout_id:
+          type: integer
+          description: Цифровой идентификатор платежа.
+          nullable: true
+          example: 10
+        invoice_id:
+          type: integer
+          description: Цифровой идентификатор счета.
+          nullable: true
+          example: 20
+        app_id:
+          type: integer
+          description: Цифровой идентификатор приложения.
+          nullable: true
+          example: 1406
+        entry:
+          type: string
+          description: Дата и время записи.
+          example: '2026-05-05 09:00:00'
+        description:
+          type: string
+          description: Описание записи.
+          nullable: true
+          example: Корректировка баланса
+        sum:
+          description: Сумма записи.
+          $ref: '#/components/schemas/Money'
     Email:
       type: object
       required:
