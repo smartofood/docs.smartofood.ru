@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.25.2
+  version: 1.25.3
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -1841,6 +1841,9 @@ paths:
                       required:
                         - id
                         - name
+                        - table_on
+                        - pickup_on
+                        - delivery_on
                         - shops
                       properties:
                         id:
@@ -1849,6 +1852,12 @@ paths:
                           $ref: '#/components/schemas/CityName'
                         folder:
                           $ref: '#/components/schemas/CityFolder'
+                        table_on:
+                          $ref: '#/components/schemas/TableOn'
+                        pickup_on:
+                          $ref: '#/components/schemas/PickupOn'
+                        delivery_on:
+                          $ref: '#/components/schemas/DeliveryOn'
                         shops:
                           type: array
                           items:
@@ -1908,8 +1917,17 @@ paths:
                         - $ref: '#/components/schemas/City'
                         - type: object
                           required:
+                            - table_on
+                            - pickup_on
+                            - delivery_on
                             - shops
                           properties:
+                            table_on:
+                              $ref: '#/components/schemas/TableOn'
+                            pickup_on:
+                              $ref: '#/components/schemas/PickupOn'
+                            delivery_on:
+                              $ref: '#/components/schemas/DeliveryOn'
                             shops:
                               type: array
                               items:
@@ -6106,6 +6124,9 @@ components:
         - city
         - street
         - house
+        - table_on
+        - pickup_on
+        - delivery_on
         - qr_on
         - addr
         - formatted_address
@@ -6124,6 +6145,12 @@ components:
           $ref: '#/components/schemas/Street'
         house:
           $ref: '#/components/schemas/House'
+        table_on:
+          $ref: '#/components/schemas/TableOn'
+        pickup_on:
+          $ref: '#/components/schemas/PickupOn'
+        delivery_on:
+          $ref: '#/components/schemas/DeliveryOn'
         qr_on:
           $ref: '#/components/schemas/QrOn'
         qr_url:
