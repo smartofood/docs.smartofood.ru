@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.25.3
+  version: 1.26.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -3024,6 +3024,60 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /cart:calculateDelivery:
+    post:
+      tags:
+        - Корзина
+      summary: Расчет параметров доставки для корзины
+      description: Определяет доступные параметры доставки по городу и адресу без расчета суммы заказа
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - city_id
+                - address
+              properties:
+                city_id:
+                  $ref: '#/components/schemas/CityId'
+                address:
+                  type: string
+                  description: Адрес доставки
+                  example: 127642, г Москва, ул Сухонская, д 11, кв 89
+                on_time:
+                  type: string
+                  description: Доставка на время
+                  example: '2024-10-25 14:30:00'
+      responses:
+        '200':
+          description: Параметры доставки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculateCartDelivery'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}:calculateDelivery:
     post:
       tags:
@@ -4674,6 +4728,11 @@ components:
       description: Долгота адреса
       nullable: true
       example: 37.65372
+    AddrAcc:
+      type: number
+      description: Точность координат адреса
+      nullable: true
+      example: 1
     OrderBankName:
       type: string
       description: Название банка или платежной системы, которая будет использована
@@ -8692,6 +8751,51 @@ components:
               $ref: '#/components/schemas/AddrLat'
             lon:
               $ref: '#/components/schemas/AddrLon'
+        is_default:
+          type: boolean
+          description: Стандартное заведение доставки
+          example: false
+    CalculateCartDelivery:
+      type: object
+      required:
+        - city_id
+        - shop_id
+        - delivery_price
+        - free_delivery
+        - minimum_order
+        - delivery_mins
+        - is_default
+      properties:
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
+        zone_id:
+          $ref: '#/components/schemas/ZoneId'
+        delivery_price:
+          $ref: '#/components/schemas/DeliveryPriceRaw'
+        free_delivery:
+          $ref: '#/components/schemas/FreeDeliveryRaw'
+        minimum_order:
+          $ref: '#/components/schemas/MinimumOrderRaw'
+        delivery_mins:
+          $ref: '#/components/schemas/DeliveryMins'
+        is_out_of_zones:
+          $ref: '#/components/schemas/IsOutOfZones'
+        delivery_point:
+          type: object
+          nullable: true
+          description: Координаты точки доставки
+          required:
+            - lat
+            - lon
+          properties:
+            lat:
+              $ref: '#/components/schemas/AddrLat'
+            lon:
+              $ref: '#/components/schemas/AddrLon'
+            acc:
+              $ref: '#/components/schemas/AddrAcc'
         is_default:
           type: boolean
           description: Стандартное заведение доставки
