@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.26.0
+  version: 1.26.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -1880,8 +1880,8 @@ paths:
     get:
       tags:
         - Места
-      summary: Места самовывоза с детальной информацией о городах
-      description: Возвращает список активных городов с детальной информацией и доступными заведениями самовывоза
+      summary: Места с детальной информацией о городах
+      description: Возвращает список активных городов с детальной информацией и активными заведениями
       parameters:
         - $ref: '#/components/parameters/ShopId'
         - in: query
@@ -1902,7 +1902,7 @@ paths:
         - $ref: '#/components/parameters/UserAgent'
       responses:
         '200':
-          description: Массив активных городов с заведениями самовывоза
+          description: Массив активных городов с активными заведениями
           content:
             application/json:
               schema:
