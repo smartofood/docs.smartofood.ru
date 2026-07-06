@@ -856,11 +856,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-    patch:
+  /cities/{id}:setActive:
+    post:
       tags:
         - Города
-      summary: Обновление города
-      description: Обновляет активность города. Метод доступен администраторам.
+      summary: Изменение активности города
+      description: Включает или отключает город. Метод доступен администраторам.
       security:
         - BearerAuth: [ ]
       parameters:
@@ -871,7 +872,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminCityUpdateRequest'
+              $ref: '#/components/schemas/AdminCitySetActiveRequest'
       responses:
         '200':
           $ref: '#/components/responses/StatusSuccess'
@@ -980,11 +981,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-    patch:
+  /shops/{id}:setActive:
+    post:
       tags:
         - Заведения
-      summary: Обновление заведения
-      description: Обновляет активность заведения. Метод доступен администраторам.
+      summary: Изменение активности заведения
+      description: Включает или отключает заведение. Метод доступен администраторам.
       security:
         - BearerAuth: [ ]
       parameters:
@@ -995,7 +997,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminShopUpdateRequest'
+              $ref: '#/components/schemas/AdminShopSetActiveRequest'
       responses:
         '200':
           $ref: '#/components/responses/StatusSuccess'
@@ -2185,21 +2187,21 @@ components:
               description: Сохраненные карты гостя
               items:
                 $ref: '#/components/schemas/AdminGuestCard'
-    AdminCityUpdateRequest:
+    AdminCitySetActiveRequest:
       type: object
       required:
-        - is_active
+        - active
       properties:
-        is_active:
+        active:
           type: boolean
           description: Город активен
           example: true
-    AdminShopUpdateRequest:
+    AdminShopSetActiveRequest:
       type: object
       required:
-        - is_active
+        - active
       properties:
-        is_active:
+        active:
           type: boolean
           description: Заведение активно
           example: true
