@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Admin API
   description: Административный API Smartofood для внешних интеграций панели.
-  version: 1.1.0
+  version: 1.2.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -32,6 +32,8 @@ x-tagGroups:
   - name: Данные
     tags:
       - Заказы
+      - Города
+      - Заведения
       - Гости
   - name: Управление
     tags:
@@ -749,6 +751,254 @@ paths:
                 properties:
                   guest:
                     $ref: '#/components/schemas/AdminGuest'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /cities:
+    get:
+      tags:
+        - Города
+      summary: Список городов
+      description: Возвращает список городов. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Количество записей на странице
+      responses:
+        '200':
+          description: Список городов
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - cities
+                properties:
+                  cities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminCityListItem'
+                  next:
+                    type: integer
+                    description: Номер следующей страницы, если в выдаче есть продолжение
+                    example: 2
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /cities/{id}:
+    get:
+      tags:
+        - Города
+      summary: Город по ID
+      description: Возвращает один город. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Город
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - city
+                properties:
+                  city:
+                    $ref: '#/components/schemas/AdminCity'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    patch:
+      tags:
+        - Города
+      summary: Обновление города
+      description: Обновляет активность города. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCityUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /shops:
+    get:
+      tags:
+        - Заведения
+      summary: Список заведений
+      description: Возвращает список заведений без платежных и интеграционных секретов. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Количество записей на странице
+      responses:
+        '200':
+          description: Список заведений
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - shops
+                properties:
+                  shops:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminShopListItem'
+                  next:
+                    type: integer
+                    description: Номер следующей страницы, если в выдаче есть продолжение
+                    example: 2
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /shops/{id}:
+    get:
+      tags:
+        - Заведения
+      summary: Заведение по ID
+      description: Возвращает одно заведение без платежных и интеграционных секретов. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Заведение
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - shop
+                properties:
+                  shop:
+                    $ref: '#/components/schemas/AdminShop'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+    patch:
+      tags:
+        - Заведения
+      summary: Обновление заведения
+      description: Обновляет активность заведения. Метод доступен администраторам.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminShopUpdateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/StatusSuccess'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -1935,6 +2185,646 @@ components:
               description: Сохраненные карты гостя
               items:
                 $ref: '#/components/schemas/AdminGuestCard'
+    AdminCityUpdateRequest:
+      type: object
+      required:
+        - is_active
+      properties:
+        is_active:
+          type: boolean
+          description: Город активен
+          example: true
+    AdminShopUpdateRequest:
+      type: object
+      required:
+        - is_active
+      properties:
+        is_active:
+          type: boolean
+          description: Заведение активно
+          example: true
+    AdminWorkingHours:
+      type: object
+      description: Часы работы по дням недели. Ключи объекта - дни недели, значения - часы работы в этот день.
+      properties:
+        mon:
+          type: array
+          description: Часы работы в понедельник
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        tue:
+          type: array
+          description: Часы работы во вторник
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        wed:
+          type: array
+          description: Часы работы в среду
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        thu:
+          type: array
+          description: Часы работы в четверг
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        fri:
+          type: array
+          description: Часы работы в пятницу
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        sat:
+          type: array
+          description: Часы работы в субботу
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+        sun:
+          type: array
+          description: Часы работы в воскресенье
+          items:
+            type: integer
+            description: Час
+            minimum: 0
+            maximum: 23
+    AdminCityListItem:
+      type: object
+      description: Город в списке admin API
+      properties:
+        id:
+          type: integer
+          description: ID города
+          example: 1
+        name:
+          type: string
+          description: Название города
+          example: Москва
+        phone:
+          type: string
+          description: Телефон колл-центра
+          example: 8 800 000-00-00
+        folder:
+          type: string
+          description: Папка города в URL
+          example: moscow
+        timezone:
+          type: string
+          description: Часовой пояс
+          example: Europe/Moscow
+        working_hours:
+          $ref: '#/components/schemas/AdminWorkingHours'
+        open_hours_shift:
+          type: integer
+          description: Сдвиг времени открытия в минутах
+          example: 0
+        close_hours_shift:
+          type: integer
+          description: Сдвиг времени закрытия в минутах
+          example: 0
+        hide_phone:
+          type: boolean
+          description: Скрыть телефон колл-центра
+          example: false
+        is_active:
+          type: boolean
+          description: Город активен
+          example: true
+        order_can:
+          type: boolean
+          description: Прием заказов возможен
+          example: true
+        order_offtime_can:
+          type: boolean
+          description: Можно оформить заказ в нерабочее время
+          example: false
+        order_offtime_type:
+          type: integer
+          description: Тип приема заказов в нерабочее время
+          example: 0
+        order_offtime_auto:
+          type: boolean
+          description: Автоматический прием заказов в нерабочее время
+          example: false
+        order_offtime_manual:
+          type: boolean
+          description: Ручной прием заказов в нерабочее время
+          example: false
+        order_ontime_shift:
+          type: integer
+          description: Сдвиг времени заказа на точное время в минутах
+          example: 0
+        order_ontime_type:
+          type: integer
+          description: Тип приема заказов на точное время
+          example: 0
+        order_ontime_only_today:
+          type: boolean
+          description: Заказы на точное время доступны только на сегодня
+          example: false
+        order_ontime_only_tomorrow:
+          type: boolean
+          description: Заказы на точное время доступны только на завтра
+          example: false
+        order_ontime_today:
+          type: boolean
+          description: Заказы на точное время доступны на сегодня
+          example: true
+        order_ontime_tomorrow:
+          type: boolean
+          description: Заказы на точное время доступны на завтра
+          example: true
+        tel:
+          type: string
+          description: Телефон колл-центра в формате для ссылки tel
+          example: '+78000000000'
+        is_open:
+          type: boolean
+          description: Город сейчас открыт для заказов
+          example: true
+        open_time:
+          type: string
+          description: Время открытия сегодня
+          example: '10:00'
+        close_time:
+          type: string
+          description: Время закрытия сегодня
+          example: '22:00'
+    AdminCity:
+      allOf:
+        - $ref: '#/components/schemas/AdminCityListItem'
+        - type: object
+          description: Город в безопасной форме admin API
+          properties:
+            empty_streets_allowed:
+              type: boolean
+              description: Разрешено оформление заказов с пустой улицей
+              example: true
+            manual_streets_prohibited:
+              type: boolean
+              description: Ручной ввод улиц при оформлении заказа запрещен
+              example: true
+            kladr_cities:
+              type: object
+              description: Названия городов по КЛАДР
+              additionalProperties:
+                type: string
+            center_lat:
+              type: number
+              nullable: true
+              description: Широта центра города
+              example: 55.755864
+            center_lon:
+              type: number
+              nullable: true
+              description: Долгота центра города
+              example: 37.617698
+            order_on:
+              type: boolean
+              description: Прием заказов на текущее время включен
+              example: true
+            order_offtime:
+              type: boolean
+              description: Прием заказов в нерабочее время включен
+              example: true
+            order_ontime:
+              type: boolean
+              description: Прием заказов на точное время включен
+              example: true
+            order_ontime_extra:
+              type: integer
+              description: Дополнительное время для заказа на точное время
+              example: 0
+            loyalty_service:
+              type: string
+              description: Сервис лояльности
+              example: none
+            undistributed_notification_on:
+              type: boolean
+              description: Уведомления о нераспределенных заказах включены
+              example: true
+            undistributed_notification_max_on:
+              type: boolean
+              description: Уведомления о нераспределенных заказах в Max включены
+              example: true
+            undistributed_notification_max:
+              type: integer
+              description: ID чата Max для нераспределенных заказов
+              example: 0
+            callback_notification_on:
+              type: boolean
+              description: Уведомления об обратных звонках включены
+              example: true
+            callback_notification_telegram:
+              type: integer
+              description: ID Telegram-чата для обратных звонков
+              example: 0
+            callback_notification_max_on:
+              type: boolean
+              description: Уведомления об обратных звонках в Max включены
+              example: true
+            callback_notification_max:
+              type: integer
+              description: ID Max-чата для обратных звонков
+              example: 0
+            callback_notification_sms_on:
+              type: boolean
+              description: SMS-уведомления об обратных звонках включены
+              example: true
+            kladr_ids:
+              type: array
+              description: Список КЛАДР-идентификаторов города
+              items:
+                type: string
+              example:
+                - '7700000100000'
+            kladr_main:
+              type: integer
+              description: Основной идентификатор города
+              example: 7700000100000
+            delivery_price_raw:
+              type: string
+              description: Стоимость доставки в валюте сайта
+              example: '100.00'
+            free_delivery_raw:
+              type: string
+              description: Сумма заказа для бесплатной доставки в валюте сайта
+              example: '1000'
+            minimum_order_raw:
+              type: string
+              description: Минимальная сумма заказа в валюте сайта
+              example: '600'
+    AdminPaymentButton:
+      type: object
+      description: Кнопка оплаты без вложенных settings
+      additionalProperties: true
+      properties:
+        enabled:
+          type: boolean
+          description: Кнопка оплаты включена
+          example: true
+        sort:
+          type: integer
+          description: Порядок сортировки
+          example: 100
+        ui:
+          type: array
+          description: UI-настройки кнопки оплаты
+          items:
+            type: object
+        title:
+          type: string
+          description: Заголовок кнопки оплаты
+          example: СБП
+        code:
+          type: string
+          description: Код кнопки оплаты
+          example: card
+        name:
+          type: string
+          description: Название кнопки оплаты
+          example: Банковская карта
+    AdminPaymentTypes:
+      type: object
+      description: Доступные типы оплаты по способам получения заказа
+      properties:
+        delivery:
+          type: array
+          description: Типы оплаты для доставки
+          items:
+            type: string
+        pickup:
+          type: array
+          description: Типы оплаты для самовывоза
+          items:
+            type: string
+        table:
+          type: array
+          description: Типы оплаты для заказов за стол
+          items:
+            type: string
+    AdminShopListItem:
+      type: object
+      description: Заведение в списке admin API
+      properties:
+        id:
+          type: integer
+          description: ID заведения
+          example: 7
+        city_id:
+          type: integer
+          description: ID города
+          example: 1
+        name:
+          type: string
+          description: Название заведения
+          example: Smartofood Cafe
+        phone:
+          type: string
+          description: Телефон заведения
+          example: 8 800 000-00-00
+        city:
+          type: string
+          description: Название города
+          example: Москва
+        district:
+          type: string
+          nullable: true
+          description: Район
+          example: Центральный
+        street:
+          type: string
+          nullable: true
+          description: Улица
+          example: Ленина
+        house:
+          type: string
+          nullable: true
+          description: Дом
+          example: '1'
+        working_hours:
+          $ref: '#/components/schemas/AdminWorkingHours'
+        open_hours_shift:
+          type: integer
+          description: Сдвиг времени открытия в минутах
+          example: 0
+        close_hours_shift:
+          type: integer
+          description: Сдвиг времени закрытия в минутах
+          example: 0
+        table_on:
+          type: boolean
+          description: Заказы за стол включены
+          example: true
+        pickup_on:
+          type: boolean
+          description: Самовывоз включен
+          example: true
+        delivery_on:
+          type: boolean
+          description: Доставка включена
+          example: true
+        qr_on:
+          type: boolean
+          description: QR-меню включено
+          example: true
+        is_active:
+          type: boolean
+          description: Заведение активно
+          example: true
+        is_default:
+          type: boolean
+          description: Заведение по умолчанию
+          example: false
+        addr_hash:
+          type: string
+          description: Хеш адреса
+          example: 74f1fe2271a1eb74903ad7633d196bb2
+        formatted_address:
+          type: string
+          description: Форматированный адрес
+          example: Москва, Ленина, 1
+        delivery_mins:
+          type: integer
+          description: Время доставки в минутах
+          example: 60
+        pickup_mins:
+          type: integer
+          description: Время приготовления для самовывоза в минутах
+          example: 30
+        qr_menu_url:
+          type: string
+          nullable: true
+          description: Ссылка на QR-меню
+          example: https://demo.smartofood.ru/qr?shop=7
+        qr_pickup_url:
+          type: string
+          nullable: true
+          description: Ссылка на QR-самовывоз
+          example: https://demo.smartofood.ru/qr?pickup=7
+        is_open:
+          type: boolean
+          description: Заведение сейчас открыто для заказов
+          example: true
+        open_time:
+          type: string
+          description: Время открытия сегодня
+          example: '10:00'
+        close_time:
+          type: string
+          description: Время закрытия сегодня
+          example: '22:00'
+    AdminShop:
+      allOf:
+        - $ref: '#/components/schemas/AdminShopListItem'
+        - type: object
+          description: Заведение в безопасной форме admin API
+          properties:
+            yookassa_on:
+              type: boolean
+              description: Онлайн-оплата через ЮKassa включена
+              example: true
+            sberbank_on:
+              type: boolean
+              description: Онлайн-оплата через Сбербанк включена
+              example: false
+            b2p_ecom_on:
+              type: boolean
+              description: Онлайн-оплата через Best2Pay включена
+              example: false
+            alfabank_on:
+              type: boolean
+              description: Онлайн-оплата через Альфа-Банк включена
+              example: false
+            crediteurope_on:
+              type: boolean
+              description: Онлайн-оплата через Кредит Европа Банк включена
+              example: false
+            tinkoff_on:
+              type: boolean
+              description: Онлайн-оплата через Тинькофф включена
+              example: false
+            cloudpayments_on:
+              type: boolean
+              description: Онлайн-оплата через CloudPayments включена
+              example: false
+            freedompay_on:
+              type: boolean
+              description: Онлайн-оплата через Freedom Pay включена
+              example: false
+            bepaid_on:
+              type: boolean
+              description: Онлайн-оплата через bePaid включена
+              example: false
+            margin_plus_on:
+              type: boolean
+              description: Онлайн-оплата через MarginPlus включена
+              example: false
+            paylink_on:
+              type: boolean
+              description: Онлайн-оплата через Paylink включена
+              example: false
+            tochka_on:
+              type: boolean
+              description: Онлайн-оплата через Точка Банк включена
+              example: false
+            psb_on:
+              type: boolean
+              description: Онлайн-оплата через ПСБ включена
+              example: false
+            yandexcheque_on:
+              type: boolean
+              description: Фискализация через Яндекс.Чеки включена
+              example: false
+            stripe_on:
+              type: boolean
+              description: Онлайн-оплата через Stripe включена
+              example: false
+            tbcbank_on:
+              type: boolean
+              description: Онлайн-оплата через TBC Bank включена
+              example: false
+            xendit_on:
+              type: boolean
+              description: Онлайн-оплата через Xendit включена
+              example: false
+            payment_types:
+              $ref: '#/components/schemas/AdminPaymentTypes'
+            payment_buttons:
+              type: object
+              description: Кнопки оплаты без вложенных settings
+              additionalProperties:
+                $ref: '#/components/schemas/AdminPaymentButton'
+            addr:
+              type: string
+              nullable: true
+              description: Адрес
+              example: ул. Ленина, 1
+            addr_lat:
+              type: number
+              nullable: true
+              description: Широта адреса
+              example: 55.751244
+            addr_lon:
+              type: number
+              nullable: true
+              description: Долгота адреса
+              example: 37.618423
+            addr_acc:
+              type: boolean
+              description: Координаты адреса подтверждены
+              example: true
+            kladr_id:
+              type: string
+              description: КЛАДР-идентификатор адреса
+              example: '7700000100000'
+            place_id:
+              type: string
+              description: Идентификатор места в геокодере
+              example: ChIJN1t_tDeuEmsRUsoyG83frY4
+            iiko_on:
+              type: boolean
+              description: Интеграция iiko включена
+              example: false
+            iiko_organization:
+              type: string
+              description: ID организации iiko
+              example: 00000000-0000-0000-0000-000000000000
+            iiko_terminal:
+              type: string
+              description: ID терминала iiko
+              example: 00000000-0000-0000-0000-000000000000
+            telegram_on:
+              type: boolean
+              description: Отправка заказов в Telegram включена
+              example: true
+            telegram_undelivered:
+              type: boolean
+              description: Отправка нераспределенных заказов в Telegram включена
+              example: true
+            telegram_chat:
+              type: integer
+              description: ID Telegram-чата
+              example: 0
+            max_on:
+              type: boolean
+              description: Отправка заказов в Max включена
+              example: true
+            max_undelivered:
+              type: boolean
+              description: Отправка нераспределенных заказов в Max включена
+              example: true
+            max_chat:
+              type: integer
+              description: ID Max-чата
+              example: 0
+            order_send_on:
+              type: boolean
+              description: Отправка заказов включена
+              example: true
+            order_notification_on:
+              type: boolean
+              description: Уведомления о заказах включены
+              example: true
+            reviews_telegram_on:
+              type: boolean
+              description: Отправка отзывов в Telegram включена
+              example: true
+            reviews_telegram_bad_rating:
+              type: boolean
+              description: Отправлять в Telegram только отзывы с плохой оценкой
+              example: false
+            reviews_telegram_chat:
+              type: integer
+              description: ID Telegram-чата для отзывов
+              example: 0
+            reviews_max_on:
+              type: boolean
+              description: Отправка отзывов в Max включена
+              example: true
+            reviews_max_bad_rating:
+              type: boolean
+              description: Отправлять в Max только отзывы с плохой оценкой
+              example: false
+            reviews_max_chat:
+              type: integer
+              description: ID Max-чата для отзывов
+              example: 0
+            reviews_email_on:
+              type: boolean
+              description: Отправка отзывов на email включена
+              example: true
+            qr_waiter_on:
+              type: boolean
+              description: Вызов официанта через QR включен
+              example: true
+            qr_manual_table_selection:
+              type: boolean
+              description: Ручной выбор стола в QR включен
+              example: false
+            qr_text_on:
+              type: boolean
+              description: Текст QR-меню включен
+              example: true
+            qr_text:
+              type: string
+              description: Текст QR-меню
+              example: Добро пожаловать
     WebhookEndpoint:
       type: object
       required:
