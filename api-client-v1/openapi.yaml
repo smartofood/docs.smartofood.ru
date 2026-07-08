@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.26.1
+  version: 1.27.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -3078,6 +3078,58 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /cart:calculateSlots:
+    post:
+      tags:
+        - Корзина
+      summary: Расчет слотов заказа на время
+      description: Возвращает ближайшее время и доступные точные слоты для самовывоза или доставки
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartCalculateSlotsRequest'
+            examples:
+              delivery:
+                value:
+                  type: delivery
+                  user_hash: e10adc3949ba59abbe56e057f20f883e
+                  city_id: 1
+                  address: 127642, г Москва, ул Сухонская, д 11, кв 89
+              pickup:
+                value:
+                  type: pickup
+                  user_hash: e10adc3949ba59abbe56e057f20f883e
+                  shop_id: 1
+      responses:
+        '200':
+          description: Слоты заказа на время, если null - заказ на время недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartCalculateSlots'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}:calculateDelivery:
     post:
       tags:
@@ -3603,6 +3655,7 @@ paths:
       tags:
         - Информация о заказах
       summary: Список доступных часов для заказа на время
+      deprecated: true
       description: При передаче параметра city_id - возвращает доступные часы для
         заказа доставки на время указанного города, при передаче shop_id - возвращает
         доступные часы для заказа самовывоза на время указанного заведения
@@ -8800,6 +8853,197 @@ components:
           type: boolean
           description: Стандартное заведение доставки
           example: false
+    CartCalculateSlotsRequest:
+      type: object
+      description: Для type=pickup обязательны user_hash и shop_id. Для type=delivery обязательны user_hash, city_id и address
+      required:
+        - type
+        - user_hash
+      properties:
+        type:
+          type: string
+          description: Тип заказа
+          enum:
+            - delivery
+            - pickup
+          example: delivery
+        user_hash:
+          $ref: '#/components/schemas/UserHash'
+        shop_id:
+          $ref: '#/components/schemas/ShopId'
+        city_id:
+          $ref: '#/components/schemas/CityId'
+        address:
+          type: string
+          description: Адрес доставки
+          example: 127642, г Москва, ул Сухонская, д 11, кв 89
+    CartCalculateSlots:
+      type: object
+      nullable: true
+      required:
+        - slots
+      properties:
+        slots:
+          type: object
+          nullable: true
+          description: Слоты заказа на время, сгруппированные по mysql-дате слота. Пустой ключ означает ближайшее время
+          additionalProperties:
+            $ref: '#/components/schemas/CartCalculateSlot'
+          example:
+            '':
+              available: true
+              label: Ближайшее
+              slot: null
+              ontime: null
+              extra:
+                - type: eta
+                  minutes: 45
+            '2024-10-25 15:45:00':
+              available: true
+              label: 25.10.2024, 15:45
+              slot:
+                from: '15:15'
+                to: '15:45'
+                shift: 30
+              ontime:
+                date: 25.10.2024
+                time: '15:45'
+                day: 25
+                month: 10
+                year: 2024
+                hour: 15
+                minute: 45
+              extra:
+                - type: eta
+                  minutes: 45
+    CartCalculateSlot:
+      type: object
+      required:
+        - available
+        - label
+        - slot
+        - ontime
+        - extra
+      properties:
+        available:
+          type: boolean
+          description: Доступность слота
+          example: true
+        label:
+          type: string
+          description: Подпись слота
+          example: 25.10.2024, 15:45
+        slot:
+          $ref: '#/components/schemas/CartCalculateSlotInterval'
+        ontime:
+          $ref: '#/components/schemas/CartCalculateSlotOntime'
+        extra:
+          type: array
+          description: Дополнительные параметры слота
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/CartCalculateSlotEta'
+              - $ref: '#/components/schemas/CartCalculateSlotBadge'
+    CartCalculateSlotInterval:
+      type: object
+      nullable: true
+      required:
+        - from
+        - to
+        - shift
+      properties:
+        from:
+          type: string
+          description: Начало интервала слота
+          example: '15:15'
+        to:
+          type: string
+          description: Окончание интервала слота
+          example: '15:45'
+        shift:
+          type: integer
+          description: Длина интервала слота в минутах
+          example: 30
+    CartCalculateSlotOntime:
+      type: object
+      nullable: true
+      required:
+        - date
+        - time
+        - day
+        - month
+        - year
+        - hour
+        - minute
+      properties:
+        date:
+          type: string
+          description: Дата слота
+          example: 25.10.2024
+        time:
+          type: string
+          description: Время слота
+          example: '15:45'
+        day:
+          type: integer
+          description: День месяца
+          example: 25
+        month:
+          type: integer
+          description: Месяц
+          example: 10
+        year:
+          type: integer
+          description: Год
+          example: 2024
+        hour:
+          type: integer
+          description: Час
+          example: 15
+        minute:
+          type: integer
+          description: Минута
+          example: 45
+    CartCalculateSlotEta:
+      type: object
+      required:
+        - type
+        - minutes
+      properties:
+        type:
+          type: string
+          enum:
+            - eta
+          example: eta
+        minutes:
+          type: integer
+          description: Расчетное время выполнения заказа в минутах
+          example: 45
+    CartCalculateSlotBadge:
+      type: object
+      required:
+        - type
+        - icon
+        - color
+        - text
+      properties:
+        type:
+          type: string
+          enum:
+            - badge
+          example: badge
+        icon:
+          type: string
+          description: Иконка бейджа
+          example: warning
+        color:
+          type: string
+          description: Цвет бейджа
+          example: ff9500
+        text:
+          type: string
+          description: Текст бейджа
+          example: потребуется изменить заказ
     DeliveryParam:
       type: object
       required:
