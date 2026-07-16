@@ -8874,6 +8874,7 @@ components:
         - user_hash
         - city_id
         - address
+        - is_qr
       properties:
         type:
           type: string
@@ -8910,6 +8911,7 @@ components:
         - type
         - user_hash
         - shop_id
+        - is_qr
       properties:
         type:
           type: string
@@ -9009,7 +9011,7 @@ components:
               delivery: null
               extra: []
         selected:
-          description: Слот из slots, соответствующий параметру ontime и доступный для заказа; иначе null
+          description: Доступный слот из slots, соответствующий параметру ontime; если он не найден, возвращается первый доступный слот, а при отсутствии доступных слотов — null
           nullable: true
           allOf:
             - $ref: '#/components/schemas/CartCalculateSlot'
