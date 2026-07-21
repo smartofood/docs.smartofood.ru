@@ -3110,14 +3110,12 @@ paths:
                   address: 127642, г Москва, ул Сухонская, д 11, кв 89
                   day: '2024-10-25'
                   ontime: '2024-10-25 15:45:00'
-                  is_qr: false
               pickup:
                 value:
                   type: pickup
                   user_hash: e10adc3949ba59abbe56e057f20f883e
                   shop_id: 1
                   faster: true
-                  is_qr: false
       responses:
         '200':
           description: Доступные дни, слоты выбранного дня и выбранный доступный слот
@@ -8874,7 +8872,6 @@ components:
         - user_hash
         - city_id
         - address
-        - is_qr
       properties:
         type:
           type: string
@@ -8903,15 +8900,12 @@ components:
           type: string
           description: Ключ выбранного пользователем слота в формате YYYY-MM-DD HH:MM:SS
           example: '2024-10-25 15:45:00'
-        is_qr:
-          $ref: '#/components/schemas/IsQr'
     CartCalculatePickupSlotsRequest:
       type: object
       required:
         - type
         - user_hash
         - shop_id
-        - is_qr
       properties:
         type:
           type: string
@@ -8936,8 +8930,6 @@ components:
           type: string
           description: Ключ выбранного пользователем слота в формате YYYY-MM-DD HH:MM:SS
           example: '2024-10-25 15:45:00'
-        is_qr:
-          $ref: '#/components/schemas/IsQr'
     CartCalculateSlots:
       type: object
       required:
