@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Smartofood Control API
   description: API панели управления Smartofood для клиентов, приложений, конфигов, уведомлений, попапов и кошельков.
-  version: 1.1.0
+  version: 1.1.1
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -256,6 +256,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /applications/{app_id}:start:
@@ -280,6 +282,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /applications/{app_id}:paymentOverdue:
