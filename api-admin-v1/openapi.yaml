@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Admin API
   description: Административный API Smartofood для внешних интеграций панели.
-  version: 1.2.0
+  version: 1.3.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -739,6 +739,50 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Lang'
         - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Гость
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - guest
+                properties:
+                  guest:
+                    $ref: '#/components/schemas/AdminGuest'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /guests/metrika/{ym_client_id}:
+    get:
+      tags:
+        - Гости
+      summary: Гость по ClientID Яндекс.Метрики
+      description: Возвращает одного гостя панели по ClientID пользователя Яндекс.Метрики.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - in: path
+          name: ym_client_id
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+$'
+          description: ClientID пользователя Яндекс.Метрики
+          example: '175377431234567890'
       responses:
         '200':
           description: Гость
@@ -2082,6 +2126,27 @@ components:
           type: string
           description: Название карты
           example: Visa •••• 1111
+    AdminGuestMetrikaClient:
+      type: object
+      required:
+        - ym_client_id
+        - created_at
+        - updated_at
+      properties:
+        ym_client_id:
+          type: string
+          description: ClientID пользователя Яндекс.Метрики
+          example: '175377431234567890'
+        created_at:
+          type: string
+          format: date-time
+          description: Время создания связи в формате ISO 8601 UTC
+          example: '2026-07-29T07:20:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Время последнего обновления связи в формате ISO 8601 UTC
+          example: '2026-07-29T08:45:00Z'
     AdminGuestData:
       type: object
       description: Гость в безопасной форме admin API
@@ -2177,6 +2242,7 @@ components:
             - city_id
             - registred
             - phone
+            - metrika_clients
           properties:
             deleted_at:
               type: integer
@@ -2187,6 +2253,11 @@ components:
               description: Сохраненные карты гостя
               items:
                 $ref: '#/components/schemas/AdminGuestCard'
+            metrika_clients:
+              type: array
+              description: Связи гостя с ClientID пользователей Яндекс.Метрики
+              items:
+                $ref: '#/components/schemas/AdminGuestMetrikaClient'
     AdminCitySetActiveRequest:
       type: object
       required:
@@ -2704,6 +2775,10 @@ components:
             xendit_on:
               type: boolean
               description: Онлайн-оплата через Xendit включена
+              example: false
+            unibank_on:
+              type: boolean
+              description: Онлайн-оплата через UniBank включена
               example: false
             payment_types:
               $ref: '#/components/schemas/AdminPaymentTypes'

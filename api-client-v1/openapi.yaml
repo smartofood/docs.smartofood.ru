@@ -1552,6 +1552,44 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
+  /profile:setMetrikaClientID:
+    post:
+      tags:
+        - Профиль
+      summary: Сохранение ClientID Яндекс.Метрики
+      description: Сохраняет или обновляет связь авторизованного гостя с ClientID пользователя Яндекс.Метрики
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetrikaClientRequest'
+      responses:
+        '200':
+          description: ClientID сохранен
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
   /profile/cards/{id}:
     delete:
       tags:
@@ -3029,7 +3067,6 @@ paths:
       tags:
         - Корзина
       summary: Расчет параметров доставки для корзины
-      deprecated: true
       description: Определяет доступные параметры доставки по городу и адресу без расчета суммы заказа
       parameters:
         - $ref: '#/components/parameters/Lang'
@@ -3079,74 +3116,11 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailableError'
-  /cart:calculateSlots:
-    post:
-      tags:
-        - Корзина
-      summary: Расчет слотов заказа на время
-      description: Возвращает доступные дни, ближайшее время и точные слоты для самовывоза или доставки
-      parameters:
-        - $ref: '#/components/parameters/Lang'
-        - $ref: '#/components/parameters/UserAgent'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              oneOf:
-                - $ref: '#/components/schemas/CartCalculateDeliverySlotsRequest'
-                - $ref: '#/components/schemas/CartCalculatePickupSlotsRequest'
-              discriminator:
-                propertyName: type
-                mapping:
-                  delivery: '#/components/schemas/CartCalculateDeliverySlotsRequest'
-                  pickup: '#/components/schemas/CartCalculatePickupSlotsRequest'
-            examples:
-              delivery:
-                value:
-                  type: delivery
-                  user_hash: e10adc3949ba59abbe56e057f20f883e
-                  city_id: 1
-                  address: 127642, г Москва, ул Сухонская, д 11, кв 89
-                  day: '2024-10-25'
-                  ontime: '2024-10-25 15:45:00'
-              pickup:
-                value:
-                  type: pickup
-                  user_hash: e10adc3949ba59abbe56e057f20f883e
-                  shop_id: 1
-                  faster: true
-      responses:
-        '200':
-          description: Доступные дни, слоты выбранного дня и выбранный доступный слот
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartCalculateSlots'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '402':
-          $ref: '#/components/responses/PaymentRequiredError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          $ref: '#/components/responses/ConflictError'
-        '423':
-          $ref: '#/components/responses/LockedError'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailableError'
   /orders/{order_guid}:calculateDelivery:
     post:
       tags:
         - Оформление заказа
       summary: Расчет доставки для заказа
-      deprecated: true
       description: Рассчитывает параметры доставки для заказа по адресу
       security:
         - BearerAuth: [ ]
@@ -3667,7 +3641,6 @@ paths:
       tags:
         - Информация о заказах
       summary: Список доступных часов для заказа на время
-      deprecated: true
       description: При передаче параметра city_id - возвращает доступные часы для
         заказа доставки на время указанного города, при передаче shop_id - возвращает
         доступные часы для заказа самовывоза на время указанного заведения
@@ -8865,356 +8838,6 @@ components:
           type: boolean
           description: Стандартное заведение доставки
           example: false
-    CartCalculateDeliverySlotsRequest:
-      type: object
-      required:
-        - type
-        - user_hash
-        - city_id
-        - address
-      properties:
-        type:
-          type: string
-          description: Тип заказа — доставка
-          enum:
-            - delivery
-          example: delivery
-        user_hash:
-          $ref: '#/components/schemas/UserHash'
-        city_id:
-          $ref: '#/components/schemas/CityId'
-        address:
-          type: string
-          description: Адрес доставки
-          example: 127642, г Москва, ул Сухонская, д 11, кв 89
-        day:
-          type: string
-          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. По умолчанию используется текущий учетный день города
-          example: '2024-10-25'
-        faster:
-          type: boolean
-          description: Вернуть только ближайший слот с пустым ключом; параметры day и ontime игнорируются
-          default: false
-          example: false
-        ontime:
-          type: string
-          description: Ключ выбранного пользователем слота в формате YYYY-MM-DD HH:MM:SS
-          example: '2024-10-25 15:45:00'
-    CartCalculatePickupSlotsRequest:
-      type: object
-      required:
-        - type
-        - user_hash
-        - shop_id
-      properties:
-        type:
-          type: string
-          description: Тип заказа — самовывоз
-          enum:
-            - pickup
-          example: pickup
-        user_hash:
-          $ref: '#/components/schemas/UserHash'
-        shop_id:
-          $ref: '#/components/schemas/ShopId'
-        day:
-          type: string
-          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. По умолчанию используется текущий учетный день города
-          example: '2024-10-25'
-        faster:
-          type: boolean
-          description: Вернуть только ближайший слот с пустым ключом; параметры day и ontime игнорируются
-          default: false
-          example: false
-        ontime:
-          type: string
-          description: Ключ выбранного пользователем слота в формате YYYY-MM-DD HH:MM:SS
-          example: '2024-10-25 15:45:00'
-    CartCalculateSlots:
-      type: object
-      required:
-        - days
-        - slots
-        - selected
-      properties:
-        days:
-          type: object
-          minProperties: 1
-          description: Доступные дни. Ключ содержит дату в формате YYYY-MM-DD, значение — локализованную подпись
-          additionalProperties:
-            type: string
-          example:
-            '2024-10-25': Сегодня
-            '2024-10-26': Завтра
-            '2024-10-27': 27 окт.
-        slots:
-          type: object
-          minProperties: 1
-          description: Слоты выбранного дня. Ключ содержит дату и время в формате YYYY-MM-DD HH:MM:SS, пустой ключ означает ближайшее время
-          additionalProperties:
-            $ref: '#/components/schemas/CartCalculateSlot'
-          example:
-            '':
-              available: true
-              label: Ближайшее
-              day: '2024-10-25'
-              eta: 48
-              slot: null
-              ontime: null
-              delivery:
-                shop_id: 1
-                zone_id: 2
-                eta: 48
-                distance: 3589
-                delivery_mins: 18
-                delivery_price: '100.00'
-                free_delivery: '1500.00'
-                free_delivery_left: '1120.00'
-                minimum_order: '150.00'
-                delivery_point:
-                  lat: 57.117473
-                  lon: 65.578736
-                  acc: 1
-                sum_before_delivery: '380.00'
-                service_fee: '44.00'
-                pay_sum: '524.00'
-                menu_available: true
-                is_out_of_zones: false
-                is_can_delivery: true
-                is_default: false
-              extra: []
-            '2024-10-25 15:45:00':
-              available: false
-              label: 25.10.2024, 15:45
-              day: '2024-10-25'
-              eta: null
-              slot:
-                from: '15:15'
-                to: '15:45'
-                shift: 30
-              ontime:
-                date: 25.10.2024
-                time: '15:45'
-                day: 25
-                month: 10
-                year: 2024
-                hour: 15
-                minute: 45
-              delivery: null
-              extra: []
-        selected:
-          description: Доступный слот из slots, соответствующий параметру ontime; если он не найден, возвращается первый доступный слот, а при отсутствии доступных слотов — null
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/CartCalculateSlot'
-    CartCalculateSlot:
-      type: object
-      required:
-        - available
-        - label
-        - day
-        - eta
-        - slot
-        - ontime
-        - delivery
-        - extra
-      properties:
-        available:
-          type: boolean
-          description: Доступность слота
-          example: true
-        label:
-          type: string
-          description: Подпись слота
-          example: 25.10.2024, 15:45
-        day:
-          type: string
-          description: День слота в формате YYYY-MM-DD
-          example: '2024-10-25'
-        eta:
-          type: integer
-          nullable: true
-          description: Расчетное время выполнения заказа в минутах; null для недоступного слота
-          example: 48
-        slot:
-          $ref: '#/components/schemas/CartCalculateSlotInterval'
-        ontime:
-          $ref: '#/components/schemas/CartCalculateSlotOntime'
-        delivery:
-          description: Параметры доставки; для самовывоза и недоступного слота — null
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/CartCalculateSlotDelivery'
-        extra:
-          type: array
-          description: Дополнительные параметры слота
-          items:
-            $ref: '#/components/schemas/CartCalculateSlotBadge'
-    CartCalculateSlotInterval:
-      type: object
-      nullable: true
-      required:
-        - from
-        - to
-        - shift
-      properties:
-        from:
-          type: string
-          description: Начало интервала слота
-          example: '15:15'
-        to:
-          type: string
-          description: Окончание интервала слота
-          example: '15:45'
-        shift:
-          type: integer
-          description: Длина интервала слота в минутах
-          example: 30
-    CartCalculateSlotOntime:
-      type: object
-      nullable: true
-      required:
-        - date
-        - time
-        - day
-        - month
-        - year
-        - hour
-        - minute
-      properties:
-        date:
-          type: string
-          description: Дата слота
-          example: 25.10.2024
-        time:
-          type: string
-          description: Время слота
-          example: '15:45'
-        day:
-          type: integer
-          description: День месяца
-          example: 25
-        month:
-          type: integer
-          description: Месяц
-          example: 10
-        year:
-          type: integer
-          description: Год
-          example: 2024
-        hour:
-          type: integer
-          description: Час
-          example: 15
-        minute:
-          type: integer
-          description: Минута
-          example: 45
-    CartCalculateSlotDelivery:
-      type: object
-      required:
-        - shop_id
-        - eta
-        - distance
-        - delivery_mins
-        - delivery_price
-        - free_delivery
-        - free_delivery_left
-        - minimum_order
-        - delivery_point
-        - sum_before_delivery
-        - service_fee
-        - pay_sum
-        - menu_available
-        - is_out_of_zones
-        - is_can_delivery
-        - is_default
-      properties:
-        shop_id:
-          $ref: '#/components/schemas/ShopId'
-        zone_id:
-          $ref: '#/components/schemas/ZoneId'
-        eta:
-          type: integer
-          description: Полное время доставки с учетом приготовления в минутах
-          example: 48
-        distance:
-          type: integer
-          nullable: true
-          description: Расстояние от точки доставки до заведения в метрах
-          example: 3589
-        delivery_mins:
-          $ref: '#/components/schemas/DeliveryMins'
-        delivery_price:
-          $ref: '#/components/schemas/DeliveryPriceRaw'
-        free_delivery:
-          $ref: '#/components/schemas/FreeDeliveryRaw'
-        free_delivery_left:
-          $ref: '#/components/schemas/FreeDeliveryLeftRaw'
-        minimum_order:
-          $ref: '#/components/schemas/MinimumOrderRaw'
-        delivery_point:
-          description: Координаты точки доставки; null, если адрес не удалось геокодировать
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/CartCalculateSlotDeliveryPoint'
-        sum_before_delivery:
-          $ref: '#/components/schemas/SumBeforeDeliveryRaw'
-        service_fee:
-          $ref: '#/components/schemas/ServiceFeeRaw'
-        pay_sum:
-          $ref: '#/components/schemas/PaySumRaw'
-        menu_available:
-          type: boolean
-          description: Все блюда корзины доступны в выбранном заведении ко времени слота
-          example: true
-        is_out_of_zones:
-          $ref: '#/components/schemas/IsOutOfZones'
-        is_can_delivery:
-          $ref: '#/components/schemas/IsCanDelivery'
-        is_default:
-          type: boolean
-          description: Использованы стандартные параметры доставки заведения
-          example: false
-        delivery_guid:
-          $ref: '#/components/schemas/DeliveryGuid'
-    CartCalculateSlotDeliveryPoint:
-      type: object
-      required:
-        - lat
-        - lon
-      properties:
-        lat:
-          $ref: '#/components/schemas/AddrLat'
-        lon:
-          $ref: '#/components/schemas/AddrLon'
-        acc:
-          $ref: '#/components/schemas/AddrAcc'
-    CartCalculateSlotBadge:
-      type: object
-      required:
-        - type
-        - icon
-        - color
-        - text
-      properties:
-        type:
-          type: string
-          enum:
-            - badge
-          example: badge
-        icon:
-          type: string
-          description: Иконка бейджа
-          example: warning
-        color:
-          type: string
-          description: Цвет бейджа
-          example: EF7C30
-        text:
-          type: string
-          description: Текст бейджа
-          example: потребуется изменить заказ
     DeliveryParam:
       type: object
       required:
@@ -9645,6 +9268,37 @@ components:
           type: boolean
           description: Подписка на рассылки включена
           example: true
+    MetrikaClientRequest:
+      type: object
+      required:
+        - ym_client_id
+      properties:
+        ym_client_id:
+          type: string
+          pattern: '^\d+$'
+          description: ClientID пользователя Яндекс.Метрики
+          example: '175377431234567890'
+    MetrikaClient:
+      type: object
+      required:
+        - ym_client_id
+        - created_at
+        - updated_at
+      properties:
+        ym_client_id:
+          type: string
+          description: ClientID пользователя Яндекс.Метрики
+          example: '175377431234567890'
+        created_at:
+          type: string
+          format: date-time
+          description: Время создания связи в формате ISO 8601 UTC
+          example: '2026-07-29T07:20:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Время последнего обновления связи в формате ISO 8601 UTC
+          example: '2026-07-29T08:45:00Z'
     CallbackRequest:
       type: object
       required:
@@ -9887,6 +9541,7 @@ components:
               - registred
               - phone
               - cards
+              - metrika_clients
               - is_subscribed
               - is_confirmed
               - is_test
@@ -9915,6 +9570,11 @@ components:
                 description: Список доступных карт гостя
                 items:
                   $ref: '#/components/schemas/CardItem'
+              metrika_clients:
+                type: array
+                description: Связи гостя с ClientID пользователей Яндекс.Метрики
+                items:
+                  $ref: '#/components/schemas/MetrikaClient'
               is_subscribed:
                 type: boolean
                 description: Подписка на рассылки включена
