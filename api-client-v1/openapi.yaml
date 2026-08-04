@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.27.0
+  version: 1.28.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -204,6 +204,10 @@ paths:
                     type: string
                     description: URL публичной оферты чаевых
                     example: https://smartofood.ru/tips-offer.pdf
+                  SYSTEM_EXT_DATA:
+                    type: string
+                    description: Дополнительные системные данные без форматирования
+                    example: ''
                   SYSTEM_MAIN_HOST:
                     type: string
                     description: Главный хост сайта
@@ -1890,6 +1894,8 @@ paths:
                           $ref: '#/components/schemas/CityName'
                         folder:
                           $ref: '#/components/schemas/CityFolder'
+                        ext_data:
+                          $ref: '#/components/schemas/ExtraData'
                         table_on:
                           $ref: '#/components/schemas/TableOn'
                         pickup_on:
@@ -2194,6 +2200,8 @@ paths:
                         example: Закажите комбо + кофе и получите каппучино в подарок
                       image_url:
                         $ref: '#/components/schemas/ImageUrl'
+                      ext_data:
+                        $ref: '#/components/schemas/ExtraData'
                       end_date:
                         type: string
                         nullable: true
@@ -3052,6 +3060,45 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '402':
           $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /orders/{order_guid}:extData:
+    patch:
+      tags:
+        - Оформление заказа
+      summary: Изменение дополнительных данных заказа
+      description: Изменяет дополнительные данные заказа текущего гостя. Размер JSON-тела не должен превышать 10 КБ. Пакет обрабатывается атомарно; пустая строка, пустой массив или null удаляют ключ.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/OrderGuid'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderExtraDataRequest'
+      responses:
+        '200':
+          description: Дополнительные данные заказа изменены
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '409':
           $ref: '#/components/responses/ConflictError'
         '423':
@@ -4477,6 +4524,46 @@ components:
         type: string
       required: true
   schemas:
+    ExtraDataValue:
+      oneOf:
+        - type: string
+        - type: array
+          items: { }
+        - type: object
+          additionalProperties: true
+    ExtraData:
+      type: object
+      description: Дополнительные данные; ключ — имя параметра
+      additionalProperties:
+        $ref: '#/components/schemas/ExtraDataValue'
+      example:
+        source: mobile
+        options:
+          gift: true
+    OrderExtraDataRequest:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 64
+                pattern: '^[A-Za-z0-9_.-]+$'
+              value:
+                oneOf:
+                  - $ref: '#/components/schemas/ExtraDataValue'
+                  - type: 'null'
     MobileGridType:
       type: string
       description: "Тип карточки мобильной сетки: вертикальная (один и два в ряд) и горизонтальная"
@@ -5791,6 +5878,8 @@ components:
         - selected
         - final
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         entity_id:
           $ref: '#/components/schemas/EntityId'
         name:
@@ -5935,6 +6024,8 @@ components:
         - url
         - nav
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/PageId'
         city_id:
@@ -6050,6 +6141,8 @@ components:
         - image_url
         - is_local_link
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/Id'
         name:
@@ -6077,6 +6170,8 @@ components:
         - title
         - place
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/Id'
         city_id:
@@ -6112,6 +6207,8 @@ components:
         - working_time
         - kladr_main
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/CityId'
         name:
@@ -6230,6 +6327,8 @@ components:
         - is_open
         - working_time
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/ShopId'
         name:
@@ -6299,6 +6398,8 @@ components:
         - is_open
         - working_time
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           $ref: '#/components/schemas/ShopId'
         city_id:
@@ -6368,6 +6469,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -6532,6 +6635,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -6642,6 +6747,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -6794,6 +6901,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -6900,6 +7009,8 @@ components:
         - color
         - font
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         id:
           type: integer
           description: Идентификатор тега
@@ -6952,6 +7063,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -7375,6 +7488,8 @@ components:
         - price_raw
         - weight_raw
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -7454,6 +7569,8 @@ components:
         - weight_raw
         - selector
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -7516,6 +7633,8 @@ components:
         - selector
         - items
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -7659,6 +7778,8 @@ components:
         - default_price
         - default_price_raw
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -7786,6 +7907,8 @@ components:
         - tags
         - badges
       properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
         group_id:
           $ref: '#/components/schemas/ParentGroup'
         product_id:
@@ -8117,6 +8240,8 @@ components:
             - id
             - code
           properties:
+            ext_data:
+              $ref: '#/components/schemas/ExtraData'
             id:
               $ref: '#/components/schemas/CouponId'
             code:
@@ -9231,6 +9356,7 @@ components:
           $ref: '#/components/schemas/OrderComment'
         ym_client_id:
           type: string
+          pattern: '^\d+$'
           description: ClientID пользователя Яндекс.Метрики
           example: '16733430621037572539'
     PaymentConfirmRequest:
@@ -9423,6 +9549,8 @@ components:
                         - path
                         - scroll_to
                       properties:
+                        ext_data:
+                          $ref: '#/components/schemas/ExtraData'
                         name:
                           $ref: '#/components/schemas/PageName'
                         path:
@@ -9448,49 +9576,53 @@ components:
                   - version
                 properties:
                   groups:
-                    type: object
-                    required:
-                      - id
-                      - group_id
-                      - name
-                      - items
-                    properties:
-                      id:
-                        type: integer
-                        description: Цифровой идентификатор группы
-                        example: 1
-                      group_id:
-                        type: string
-                        description: Идентификатор группы
-                        example: ba0b7688-f8a9-44cf-9e49-7ef42a1e31eb
-                      name:
-                        type: string
-                        description: Название группы
-                      is_sales_limited:
-                        $ref: '#/components/schemas/IsSalesLimited'
-                      is_sale:
-                        $ref: '#/components/schemas/IsSale'
-                      sales_time:
-                        $ref: '#/components/schemas/SalesTime'
-                      is_limited_hidden:
-                        $ref: '#/components/schemas/IsLimitedHidden'
-                      timezone:
-                        $ref: '#/components/schemas/TimeZone'
-                      mobile_grid:
-                        $ref: '#/components/schemas/MobileGrid'
-                      image_url:
-                        $ref: '#/components/schemas/ImageUrl'
-                      items:
-                        oneOf:
-                          - type: array
-                            items:
-                              $ref: '#/components/schemas/ProductListItemQRV0'
-                          - type: array
-                            items:
-                              $ref: '#/components/schemas/ProductListItemQRV1'
-                          - type: array
-                            items:
-                              $ref: '#/components/schemas/ProductListItemQRV2'
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - group_id
+                        - name
+                        - items
+                      properties:
+                        ext_data:
+                          $ref: '#/components/schemas/ExtraData'
+                        id:
+                          type: integer
+                          description: Цифровой идентификатор группы
+                          example: 1
+                        group_id:
+                          type: string
+                          description: Идентификатор группы
+                          example: ba0b7688-f8a9-44cf-9e49-7ef42a1e31eb
+                        name:
+                          type: string
+                          description: Название группы
+                        is_sales_limited:
+                          $ref: '#/components/schemas/IsSalesLimited'
+                        is_sale:
+                          $ref: '#/components/schemas/IsSale'
+                        sales_time:
+                          $ref: '#/components/schemas/SalesTime'
+                        is_limited_hidden:
+                          $ref: '#/components/schemas/IsLimitedHidden'
+                        timezone:
+                          $ref: '#/components/schemas/TimeZone'
+                        mobile_grid:
+                          $ref: '#/components/schemas/MobileGrid'
+                        image_url:
+                          $ref: '#/components/schemas/ImageUrl'
+                        items:
+                          oneOf:
+                            - type: array
+                              items:
+                                $ref: '#/components/schemas/ProductListItemQRV0'
+                            - type: array
+                              items:
+                                $ref: '#/components/schemas/ProductListItemQRV1'
+                            - type: array
+                              items:
+                                $ref: '#/components/schemas/ProductListItemQRV2'
                   version:
                     $ref: '#/components/schemas/MenuVersion'
     PageInfo:
