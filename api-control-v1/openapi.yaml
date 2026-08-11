@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Smartofood Control API
-  description: API панели управления Smartofood для клиентов, приложений, конфигов, уведомлений, попапов и кошельков.
-  version: 1.1.1
+  description: API панели управления Smartofood для медиа, клиентов, приложений, конфигов, уведомлений, попапов и кошельков.
+  version: 1.2.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -23,6 +23,7 @@ x-tagGroups:
       - Пинг API
   - name: Control
     tags:
+      - Медиа
       - Клиенты
       - Приложения
       - Конфиги
@@ -64,6 +65,77 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /media:
+    post:
+      tags:
+        - Медиа
+      summary: Загрузить медиа-файлы
+      description: Принимает от одного до 10 изображений, видео или аудиофайлов в поле media. Общий размер файлов не должен превышать 50 МБ.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - media
+              properties:
+                media:
+                  oneOf:
+                    - type: string
+                      format: binary
+                    - type: array
+                      minItems: 1
+                      maxItems: 10
+                      items:
+                        type: string
+                        format: binary
+      responses:
+        '200':
+          description: Загруженные медиа-файлы.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaUploadResult'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /media/{media_id}:
+    get:
+      tags:
+        - Медиа
+      summary: Получить данные медиа-файла
+      parameters:
+        - name: media_id
+          in: path
+          description: UUID медиа-файла.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Uuid'
+      responses:
+        '200':
+          description: Данные медиа-файла.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /clients:
@@ -182,6 +254,16 @@ paths:
               - 'true'
               - 'false'
           example: 'true'
+        - name: include_extra
+          in: query
+          description: Добавить в ответ дополнительные данные приложения. Параметр доступен admin- и root-токенам.
+          required: false
+          schema:
+            type: string
+            enum:
+              - 'true'
+              - 'false'
+          example: 'true'
       responses:
         '200':
           description: Данные приложения.
@@ -194,6 +276,59 @@ paths:
                     properties:
                       Client:
                         $ref: '#/components/schemas/Client'
+                      ext_data:
+                        $ref: '#/components/schemas/ExtraData'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{app_id}/ext-data:
+    get:
+      tags:
+        - Приложения
+      summary: Дополнительные данные приложения
+      description: Возвращает дополнительные данные приложения. Метод доступен admin- и root-токенам.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: Дополнительные данные приложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtraDataResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - Приложения
+      summary: Изменение дополнительных данных приложения
+      description: Атомарно создает, заменяет или удаляет значения пакетом. Пустая строка, пустой массив или null удаляют запись. Для приложения можно сохранить не более 50 параметров. Метод доступен admin- и root-токенам.
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraDataBatchRequest'
+      responses:
+        '200':
+          description: Актуальные дополнительные данные приложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtraDataResponse'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -1129,6 +1264,7 @@ paths:
                 properties:
                   unseen:
                     description: Непросмотренный попап или null, если активного попапа нет.
+                    type: object
                     nullable: true
                     allOf:
                       - $ref: '#/components/schemas/Popup'
@@ -1539,6 +1675,40 @@ components:
       format: uuid
       description: UUID в стандартном строковом формате.
       example: 0ecfc650-9ad6-4c71-a196-7ca79ca1324d
+    MediaUploadResult:
+      type: object
+      required:
+        - media_id
+        - mime_type
+        - file_size
+        - url
+        - date
+      properties:
+        media_id:
+          $ref: '#/components/schemas/Uuid'
+        mime_type:
+          type: string
+          description: MIME-тип файла.
+          example: image/jpeg
+        file_size:
+          type: integer
+          minimum: 0
+          description: Размер файла в байтах.
+          example: 102400
+        url:
+          type: string
+          format: uri
+          description: Публичный URL файла.
+          example: https://storage.yandexcloud.net/smartofood/control/images/0ecfc650-9ad6-4c71-a196-7ca79ca1324d.jpg
+        date:
+          $ref: '#/components/schemas/IsoDateTime'
+    MediaUploadResponse:
+      type: object
+      required:
+        - media
+      properties:
+        media:
+          $ref: '#/components/schemas/MediaUploadResult'
     NextPage:
       type: integer
       description: Номер следующей страницы, если есть продолжение списка.
@@ -1988,6 +2158,63 @@ components:
           items:
             type: object
             additionalProperties: true
+    ExtraDataValue:
+      oneOf:
+        - type: string
+        - type: array
+          items: {}
+        - type: object
+          additionalProperties: true
+    ExtraData:
+      type: object
+      description: Дополнительные данные; ключ — имя параметра.
+      additionalProperties:
+        $ref: '#/components/schemas/ExtraDataValue'
+      example:
+        integration.settings:
+          enabled: true
+          provider: example
+        external_id: app-1406
+    ExtraDataResponse:
+      type: object
+      required:
+        - ext_data
+      properties:
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
+    ExtraDataBatchRequest:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                description: Имя дополнительного параметра.
+                minLength: 1
+                maxLength: 64
+                pattern: ^[A-Za-z0-9_.-]+$
+                example: integration.settings
+              value:
+                description: Строка, массив, объект или null. Пустое значение удаляет параметр.
+                oneOf:
+                  - $ref: '#/components/schemas/ExtraDataValue'
+                  - type: string
+                    nullable: true
+                    enum:
+                      - null
+                example:
+                  enabled: true
+                  provider: example
     Payment:
       type: object
       required:
@@ -2545,6 +2772,7 @@ components:
           example: Подключите новую функцию в панели управления.
         button:
           description: Кнопка попапа или null, если кнопка не задана.
+          type: object
           nullable: true
           allOf:
             - $ref: '#/components/schemas/Button'
