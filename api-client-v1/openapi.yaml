@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: Smartofood Client API
   description: Клиентский АПИ Smartofood
-  version: 1.29.0
+  version: 1.30.0
   contact:
     url: https://smartofood.ru
     email: support@smartofood.ru
@@ -567,6 +567,13 @@ paths:
                     type: boolean
                     description: Показывать кнопку "Опции"
                     example: true
+                  SITE_PRODUCT_DISPLAY_MODE:
+                    type: string
+                    description: Режим отображения продуктов
+                    example: normal
+                    enum:
+                      - normal
+                      - single_page
                   SITE_PRODUCTS_SELECTOR_DEFAULT:
                     type: boolean
                     description: Значение по умолчанию селекторного модификатора
@@ -2351,6 +2358,48 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Offer'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '402':
+          $ref: '#/components/responses/PaymentRequiredError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '423':
+          $ref: '#/components/responses/LockedError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+  /menu:
+    get:
+      tags:
+        - Продукты
+      summary: Полное меню
+      description: Возвращает все доступные группы и продукты без постраничной выдачи
+      parameters:
+        - $ref: '#/components/parameters/CityId'
+        - $ref: '#/components/parameters/ShopId'
+        - $ref: '#/components/parameters/Lang'
+        - $ref: '#/components/parameters/UserAgent'
+      responses:
+        '200':
+          description: Полное меню
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - groups
+                  - version
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuGroup'
+                  version:
+                    $ref: '#/components/schemas/MenuVersion'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '402':
@@ -6513,6 +6562,41 @@ components:
           $ref: '#/components/schemas/OpenTime'
         close_time:
           $ref: '#/components/schemas/CloseTime'
+    MenuGroup:
+      type: object
+      required:
+        - group_id
+        - name
+        - path
+        - url
+        - mobile_grid
+        - ext_data
+        - items
+      properties:
+        group_id:
+          type: string
+          format: uuid
+          description: Идентификатор группы продуктов
+        name:
+          type: string
+          description: Название группы с учетом переименования в дополнительных данных
+          example: Напитки
+        path:
+          $ref: '#/components/schemas/PagePath'
+        url:
+          $ref: '#/components/schemas/PageUrl'
+        mobile_grid:
+          $ref: '#/components/schemas/MobileGrid'
+        ext_data:
+          $ref: '#/components/schemas/ExtraData'
+        items:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/ProductListItemV0'
+            - type: array
+              items:
+                $ref: '#/components/schemas/ProductListItemV2'
     ProductListItemV0:
       type: object
       required:
@@ -9052,7 +9136,7 @@ components:
           example: 127642, г Москва, ул Сухонская, д 11, кв 89
         day:
           type: string
-          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. По умолчанию используется текущий учетный день города
+          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. Если не указан, используется первый учетный день с доступными слотами
           example: '2024-10-25'
         faster:
           type: boolean
@@ -9082,7 +9166,7 @@ components:
           $ref: '#/components/schemas/ShopId'
         day:
           type: string
-          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. По умолчанию используется текущий учетный день города
+          description: День, для которого возвращаются слоты, в формате YYYY-MM-DD. Если не указан, используется первый учетный день с доступными слотами
           example: '2024-10-25'
         faster:
           type: boolean
